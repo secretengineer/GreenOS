@@ -1,3 +1,4 @@
+
 /**
  * GreenOS - API Functions
  * HTTP callable functions for frontend applications
@@ -8,6 +9,37 @@ const { BigQuery } = require('@google-cloud/bigquery');
 
 const db = admin.firestore();
 const bigquery = new BigQuery();
+
+/**
+ * Generate a custom authentication token for a device
+ */
+exports.generateAuthToken = async (data, context) => {
+  const { deviceId } = data;
+
+  if (!deviceId) {
+    throw new functions.https.HttpsError('invalid-argument', 'The function must be called with a "deviceId" argument.');
+  }
+
+  try {
+    // Optional: You might want to add a check here to ensure the deviceId is valid
+    // and registered in your database before creating a token.
+    // For example:
+    // const deviceRef = db.collection('devices').doc(deviceId);
+    // const doc = await deviceRef.get();
+    // if (!doc.exists) {
+    //   throw new functions.https.HttpsError('not-found', 'Device not found');
+    // }
+
+    const customToken = await admin.auth().createCustomToken(deviceId);
+    console.log(`Generated custom token for device: ${deviceId}`);
+
+    return { token: customToken };
+  } catch (error) {
+    console.error('Error creating custom token:', error);
+    throw new functions.https.HttpsError('internal', 'Unable to create custom token.');
+  }
+};
+
 
 /**
  * Get historical sensor data from BigQuery

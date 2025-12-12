@@ -46,6 +46,12 @@ exports.onUserCommand = functions.firestore
 // ============================================================================
 
 /**
+ * Generate a custom authentication token for a device
+ */
+exports.generateAuthToken = functions.https.onCall(api.generateAuthToken);
+
+
+/**
  * Get historical sensor data from BigQuery
  */
 exports.getHistoricalData = functions.https.onCall(api.getHistoricalData);
