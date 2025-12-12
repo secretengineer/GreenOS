@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user has access to greenhouse
+    function hasGreenhouseAccess(greenhouseId) {
+      return request.auth != null && 
+             request.auth.uid in get(/databases/$(database)/documents/greenhouses/$(greenhouseId)).data.users;
+    }
+    
+    // Greenhouses collection
+    match /greenhouses/{greenhouseId} {
+      // Users can read/write greenhouses they belong to
+      allow read, write: if request.auth != null && 
+                            request.auth.uid in resource.data.users;
+      
+      // Sensor data subcollection
+      match /sensors/{sensorId} {
+        allow read: if hasGreenhouseAccess(greenhouseId);
+        // Allow writes from authenticated devices/users
+        allow write: if request.auth != null;
+      }
+      
+      // Alerts subcollection
+      match /alerts/{alertId} {
+        allow read: if hasGreenhouseAccess(greenhouseId);
+        allow write: if request.auth != null;
+      }
+      
+      // Commands subcollection
+      match /commands/{commandId} {
+        allow read: if hasGreenhouseAccess(greenhouseId);
+        allow create: if hasGreenhouseAccess(greenhouseId);
+        allow update, delete: if false; // Commands are immutable after creation
+      }
+      
+      // Logs subcollection
+      match /logs/{logId} {
+        allow read: if hasGreenhouseAccess(greenhouseId);
+        allow write: if request.auth != null;
+      }
+      
+      // Daily summaries subcollection
+      match /daily_summaries/{summaryId} {
+        allow read: if hasGreenhouseAccess(greenhouseId);
+        allow write: if false; // Only functions can write summaries
+      }
+      
+      // Weather data subcollection
+      match /weather/{weatherId} {
+        allow read: if hasGreenhouseAccess(greenhouseId);
+        allow write: if false; // Only functions can write weather data
+      }
+    }
+    
+    // Users collection (for profile data)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
