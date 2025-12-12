@@ -5,13 +5,14 @@
  */
 
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "AIzaSyAXSxzpXr0tkEgRdO8dJzufYec9yfu3cQI",
+  authDomain: "greenos-24311.firebaseapp.com",
+  projectId: "greenos-24311",
+  storageBucket: "greenos-24311.firebasestorage.app",
+  messagingSenderId: "773933100540",
+  appId: "1:773933100540:web:d026eb4771e00f04a6d679",
+  measurementId: "G-JY0JWSR0T8"
 };
 
-export const greenhouseId = "denver_greenhouse_01";
+export const greenhouseId = "Mayfair_Greenhouse";
+
