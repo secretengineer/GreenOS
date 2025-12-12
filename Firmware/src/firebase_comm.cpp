@@ -21,7 +21,7 @@
  
  // Define the Cloud Function URL.
  // IMPORTANT: Replace <YOUR_REGION> and <YOUR_PROJECT_ID> with your Firebase project details.
- #define TOKEN_GEN_URL "https://<YOUR_REGION>-<YOUR_PROJECT_ID>.cloudfunctions.net/generateAuthToken"
+ #define TOKEN_GEN_URL "https://us-west3-greenos-24311.cloudfunctions.net/generateAuthToken"
  
  
  FirebaseComm::FirebaseComm() {
