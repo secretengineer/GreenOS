@@ -43,7 +43,7 @@ The GreenOS architecture is a hybrid edge-cloud system, combining the immediate 
 
 ```mermaid
 graph TD
-    subgraph Edge [Greenhouse (Edge)]
+    subgraph Edge [Greenhouse - Edge]
         UNO[Arduino UNO Q]
         Sensors[Sensors]
         Actuators[Actuators]
@@ -51,7 +51,7 @@ graph TD
         UNO --> Actuators
     end
 
-    subgraph Cloud [Firebase & Google Cloud]
+    subgraph Cloud [Firebase and Google Cloud]
         Firestore[Cloud Firestore]
         Functions[Cloud Functions]
         Auth[Firebase Auth]
