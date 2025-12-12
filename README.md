@@ -88,6 +88,50 @@ graph TD
     SecretManager --> Functions
 ```
 
+### 📂 Project Structure
+
+```txt
+/GreenOS
+├── /Firmware (Arduino UNO Q Code)
+│   ├── /src
+│   │   ├── main.cpp                 (Core loop, sensor polling, actuation logic)
+│   │   ├── config.h                 (Local settings, Wi-Fi credentials)
+│   │   ├── sensor_manager.h/cpp     (Code for reading all sensors)
+│   │   ├── actuator_manager.h/cpp   (Code for controlling heaters, fans, valves)
+│   │   ├── firebase_comm.h/cpp      (Real-time data synchronization with Firestore)
+│   │   └── anomaly_detection.h/cpp  (On-device ML model for simple anomaly checks)
+│   └── /libraries                   (External libraries for sensors, Firebase, etc.)
+|
+├── /CloudFunctions (Node.js/TypeScript Backend Logic)
+│   ├── /functions
+│   │   ├── index.js/ts              (Main entry point for all Cloud Functions)
+│   │   ├── triggers.js/ts           (Functions triggered by Firestore writes: Alerts, Anomaly processing)
+│   │   ├── api.js/ts                (API endpoints for UI: BigQuery historical data access)
+│   │   └── scheduled.js/ts          (Functions for periodic tasks: Data export to BigQuery, Weather API checks)
+│   └── package.json                 (Dependencies: firebase-admin, external APIs)
+|
+├── /WebUI (Frontend Application)
+│   ├── /public
+│   │   ├── index.html               (Main application file)
+│   │   └── firebase-messaging-sw.js (Service worker for FCM notifications) 
+│   ├── /src
+│   │   ├── /components              (Reusable UI elements: Gauges, Charts, Video feeds)
+│   │   ├── /pages                   (Views: Dashboard, Login, Settings, Audit Log)
+│   │   ├── app.js/ts                (Application initialization and routing)
+│   │   └── style.css                (San serif fonts, responsive layout)
+│   └── firebase.json                (Firebase Hosting configuration)
+|
+├── /MobileApp (Mobile Application - e.g., Flutter or React Native)
+│   ├── /android
+│   ├── /ios
+│   └── /lib                         (Cross-platform code using Firebase SDKs)
+|
+└── /Docs
+    └── README.md
+    └── CONTRIBUTING.md
+    └── LICENSE
+```
+
 ### 1. Arduino UNO Q (Edge Device)
 The UNO Q serves as the primary controller within the greenhouse, responsible for real-time interaction with the physical environment.
 
