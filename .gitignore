@@ -53,6 +53,7 @@ coverage/
 
 # Credentials
 **/config.h
+**/config.js
 serviceAccountKey.json
 credentials.json
 
