@@ -6,7 +6,7 @@
 
 ## 📖 Project Overview
 
-**GreenOS** is an ambitious open-source project aimed at developing a sophisticated, intelligent, and resilient control system for backyard greenhouses. Leveraging the power of the **Arduino UNO Q** at the edge, combined with the scalable and real-time capabilities of **Firebase** and **Google Cloud**, GreenOS provides precise environmental control, real-time data analysis, predictive insights, and robust safe-fail mechanisms to ensure optimal plant growth and protection.
+**GreenOS** is an open-source project aimed at developing a sophisticated, intelligent, and resilient control system for backyard greenhouses. Leveraging the power of the **Arduino UNO Q** at the edge, combined with the scalable and real-time capabilities of **Firebase** and **Google Cloud**, GreenOS provides precise environmental control, real-time data analysis, predictive insights, and robust safe-fail mechanisms to ensure optimal plant growth and protection.
 
 This document outlines the architectural design of GreenOS, detailing how various components integrate to deliver a full-featured greenhouse management solution, accessible via both web and mobile interfaces.
 
@@ -194,4 +194,5 @@ Google Cloud complements Firebase with robust capabilities for big data analytic
 
 ## 📞 Contact
 
-*(Placeholder: Contact information for project maintainers.)*
+**Pat Ryan**  
+📧 [pat@patryan.com](mailto:pat@patryan.com)
