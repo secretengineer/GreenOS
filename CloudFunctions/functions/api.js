@@ -5,7 +5,7 @@
  */
 
 const admin = require('firebase-admin');
-const functions = require('firebase-functions');
+const functions = require('firebase-functions/v1');
 const { BigQuery } = require('@google-cloud/bigquery');
 
 // Lazy load Firestore and BigQuery to prevent deployment timeouts
