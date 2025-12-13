@@ -2,13 +2,28 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
+    // Helper function to check if request is from an authorized device
+    function isAuthorizedDevice(greenhouseId) {
+      return request.auth != null && 
+             request.auth.token.isDevice == true &&
+             request.auth.token.greenhouseId == greenhouseId;
+    }
+    
+    // Helper function to check if user has access to greenhouse
+    // Note: Storage rules cannot query Firestore, so we rely on custom claims
+    function hasGreenhouseAccess(greenhouseId) {
+      return request.auth != null && 
+             (greenhouseId in request.auth.token.greenhouses ||
+              request.auth.token.greenhouseId == greenhouseId);
+    }
+    
     // Images and videos from greenhouse cameras
     match /greenhouses/{greenhouseId}/{allPaths=**} {
-      // Allow authenticated users to read
-      allow read: if request.auth != null;
+      // Allow users with greenhouse access to read
+      allow read: if hasGreenhouseAccess(greenhouseId);
       
-      // Allow authenticated devices/functions to write
-      allow write: if request.auth != null;
+      // Only allow authorized devices to write (e.g., camera uploads)
+      allow write: if isAuthorizedDevice(greenhouseId);
     }
     
     // User uploads (profile pictures, etc.)

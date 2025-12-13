@@ -8,6 +8,20 @@ service cloud.firestore {
              request.auth.uid in get(/databases/$(database)/documents/greenhouses/$(greenhouseId)).data.users;
     }
     
+    // Helper function to check if request is from an authorized device
+    function isAuthorizedDevice(greenhouseId) {
+      return request.auth != null && 
+             request.auth.token.isDevice == true &&
+             request.auth.token.greenhouseId == greenhouseId;
+    }
+    
+    // Devices collection (for device registration)
+    match /devices/{deviceId} {
+      // Only admins can read/write device registrations
+      allow read, write: if request.auth != null && 
+                            request.auth.token.admin == true;
+    }
+    
     // Greenhouses collection
     match /greenhouses/{greenhouseId} {
       // Users can read/write greenhouses they belong to
@@ -17,14 +31,17 @@ service cloud.firestore {
       // Sensor data subcollection
       match /sensors/{sensorId} {
         allow read: if hasGreenhouseAccess(greenhouseId);
-        // Allow writes from authenticated devices/users
-        allow write: if request.auth != null;
+        // Only allow writes from authorized devices for this greenhouse
+        allow write: if isAuthorizedDevice(greenhouseId);
       }
       
       // Alerts subcollection
       match /alerts/{alertId} {
         allow read: if hasGreenhouseAccess(greenhouseId);
-        allow write: if request.auth != null;
+        // Users can acknowledge alerts, only Cloud Functions can create them
+        allow update: if hasGreenhouseAccess(greenhouseId) && 
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acknowledged', 'acknowledgedBy', 'acknowledgedAt']);
+        allow create, delete: if false; // Only Cloud Functions can create/delete alerts
       }
       
       // Commands subcollection
@@ -37,7 +54,7 @@ service cloud.firestore {
       // Logs subcollection
       match /logs/{logId} {
         allow read: if hasGreenhouseAccess(greenhouseId);
-        allow write: if request.auth != null;
+        allow write: if false; // Only Cloud Functions can write logs
       }
       
       // Daily summaries subcollection

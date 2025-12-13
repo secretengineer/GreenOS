@@ -30,24 +30,38 @@ function getBigQuery() {
  * Generate a custom authentication token for a device
  */
 exports.generateAuthToken = async (data, context) => {
-  const { deviceId } = data;
+  const { deviceId, greenhouseId } = data;
 
   if (!deviceId) {
     throw new functions.https.HttpsError('invalid-argument', 'The function must be called with a "deviceId" argument.');
   }
 
-  try {
-    // Optional: You might want to add a check here to ensure the deviceId is valid
-    // and registered in your database before creating a token.
-    // For example:
-    // const deviceRef = getDb().collection('devices').doc(deviceId);
-    // const doc = await deviceRef.get();
-    // if (!doc.exists) {
-    //   throw new functions.https.HttpsError('not-found', 'Device not found');
-    // }
+  if (!greenhouseId) {
+    throw new functions.https.HttpsError('invalid-argument', 'The function must be called with a "greenhouseId" argument.');
+  }
 
-    const customToken = await admin.auth().createCustomToken(deviceId);
-    console.log(`Generated custom token for device: ${deviceId}`);
+  try {
+    // Validate that the device is registered and belongs to the specified greenhouse
+    const deviceRef = getDb().collection('devices').doc(deviceId);
+    const deviceDoc = await deviceRef.get();
+    
+    if (!deviceDoc.exists) {
+      console.warn(`Token request for unregistered device: ${deviceId}`);
+      throw new functions.https.HttpsError('not-found', 'Device not registered');
+    }
+    
+    const deviceData = deviceDoc.data();
+    if (deviceData.greenhouseId !== greenhouseId) {
+      console.warn(`Device ${deviceId} does not belong to greenhouse ${greenhouseId}`);
+      throw new functions.https.HttpsError('permission-denied', 'Device not authorized for this greenhouse');
+    }
+    
+    // Create custom token with greenhouse claim for security rules
+    const customToken = await admin.auth().createCustomToken(deviceId, {
+      greenhouseId: greenhouseId,
+      isDevice: true
+    });
+    console.log(`Generated custom token for device: ${deviceId} (greenhouse: ${greenhouseId})`);
 
     return { token: customToken };
   } catch (error) {
@@ -72,7 +86,7 @@ exports.getHistoricalData = async (data, context) => {
   
   try {
     // Verify user has access to this greenhouse
-    const greenhouseDoc = await db.collection('greenhouses').doc(greenhouseId).get();
+    const greenhouseDoc = await getDb().collection('greenhouses').doc(greenhouseId).get();
     
     if (!greenhouseDoc.exists) {
       throw new functions.https.HttpsError('not-found', 'Greenhouse not found');
@@ -129,7 +143,7 @@ exports.getHistoricalData = async (data, context) => {
       }
     };
     
-    const [rows] = await bigquery.query(options);
+    const [rows] = await getBigQuery().query(options);
     
     return {
       success: true,
@@ -154,8 +168,20 @@ exports.getAnalytics = async (data, context) => {
   const { greenhouseId, period = '7d' } = data;
   
   try {
+    // Verify user has access to this greenhouse
+    const greenhouseDoc = await getDb().collection('greenhouses').doc(greenhouseId).get();
+    
+    if (!greenhouseDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Greenhouse not found');
+    }
+    
+    const greenhouse = greenhouseDoc.data();
+    if (!greenhouse.users || !greenhouse.users.includes(context.auth.uid)) {
+      throw new functions.https.HttpsError('permission-denied', 'Access denied');
+    }
+    
     // Get recent sensor readings
-    const snapshot = await db
+    const snapshot = await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .collection('sensors')
@@ -199,7 +225,19 @@ exports.updateConfig = async (data, context) => {
   const { greenhouseId, config } = data;
   
   try {
-    await db
+    // Verify user has access to this greenhouse
+    const greenhouseDoc = await getDb().collection('greenhouses').doc(greenhouseId).get();
+    
+    if (!greenhouseDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Greenhouse not found');
+    }
+    
+    const greenhouse = greenhouseDoc.data();
+    if (!greenhouse.users || !greenhouse.users.includes(context.auth.uid)) {
+      throw new functions.https.HttpsError('permission-denied', 'Access denied');
+    }
+    
+    await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .update({
@@ -210,7 +248,7 @@ exports.updateConfig = async (data, context) => {
       });
     
     // Log configuration change
-    await db
+    await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .collection('logs')
@@ -240,8 +278,20 @@ exports.getGreenhouseStatus = async (data, context) => {
   const { greenhouseId } = data;
   
   try {
+    // Verify user has access to this greenhouse
+    const greenhouseDoc = await getDb().collection('greenhouses').doc(greenhouseId).get();
+    
+    if (!greenhouseDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Greenhouse not found');
+    }
+    
+    const greenhouse = greenhouseDoc.data();
+    if (!greenhouse.users || !greenhouse.users.includes(context.auth.uid)) {
+      throw new functions.https.HttpsError('permission-denied', 'Access denied');
+    }
+    
     // Get latest sensor reading
-    const sensorSnapshot = await db
+    const sensorSnapshot = await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .collection('sensors')
@@ -250,7 +300,7 @@ exports.getGreenhouseStatus = async (data, context) => {
       .get();
     
     // Get active alerts
-    const alertsSnapshot = await db
+    const alertsSnapshot = await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .collection('alerts')
@@ -259,11 +309,8 @@ exports.getGreenhouseStatus = async (data, context) => {
       .limit(10)
       .get();
     
-    // Get device info
-    const greenhouseDoc = await db
-      .collection('greenhouses')
-      .doc(greenhouseId)
-      .get();
+    // Get device info - already fetched above
+    // const greenhouseDoc = await getDb().collection('greenhouses').doc(greenhouseId).get();
     
     const latestSensor = sensorSnapshot.empty ? null : sensorSnapshot.docs[0].data();
     const activeAlerts = [];

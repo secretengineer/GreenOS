@@ -106,6 +106,13 @@ exports.exportToBigQuery = async (context) => {
 exports.fetchWeatherData = async (context) => {
   console.log('Fetching weather data...');
   
+  // Validate API key is configured
+  const apiKey = process.env.WEATHER_API_KEY;
+  if (!apiKey) {
+    console.error('WEATHER_API_KEY environment variable is not configured');
+    throw new Error('Weather API key not configured. Set WEATHER_API_KEY in Firebase Functions config.');
+  }
+  
   try {
     // Get all greenhouses with location data
     const greenhousesSnapshot = await getDb()
@@ -117,30 +124,39 @@ exports.fetchWeatherData = async (context) => {
       const greenhouse = greenhouseDoc.data();
       const location = greenhouse.location;
       
-      // Fetch weather from OpenWeather API (example)
-      // Replace with your actual API key and endpoint
-      const apiKey = process.env.WEATHER_API_KEY;
+      // Validate location data
+      if (!location.lat || !location.lon) {
+        console.warn(`Invalid location data for greenhouse ${greenhouseDoc.id}`);
+        continue;
+      }
+      
+      // Fetch weather from OpenWeather API
       const url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}`;
       
-      const response = await axios.get(url);
-      const weather = response.data;
+      try {
+        const response = await axios.get(url, { timeout: 10000 });
+        const weather = response.data;
       
-      // Store weather data
-      await getDb()
-        .collection('greenhouses')
-        .doc(greenhouseDoc.id)
-        .collection('weather')
-        .add({
-          temperature: weather.main.temp - 273.15, // Convert to Celsius
-          humidity: weather.main.humidity,
-          pressure: weather.main.pressure,
-          conditions: weather.weather[0].description,
-          windSpeed: weather.wind.speed,
-          timestamp: admin.firestore.FieldValue.serverTimestamp(),
-          source: 'openweather'
-        });
+        // Store weather data
+        await getDb()
+          .collection('greenhouses')
+          .doc(greenhouseDoc.id)
+          .collection('weather')
+          .add({
+            temperature: weather.main.temp - 273.15, // Convert to Celsius
+            humidity: weather.main.humidity,
+            pressure: weather.main.pressure,
+            conditions: weather.weather[0].description,
+            windSpeed: weather.wind.speed,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            source: 'openweather'
+          });
       
-      console.log(`Weather data updated for ${greenhouseDoc.id}`);
+        console.log(`Weather data updated for ${greenhouseDoc.id}`);
+      } catch (weatherError) {
+        console.error(`Failed to fetch weather for ${greenhouseDoc.id}:`, weatherError.message);
+        // Continue with other greenhouses even if one fails
+      }
     }
     
     return { success: true };

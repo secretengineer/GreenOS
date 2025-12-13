@@ -2,6 +2,23 @@ import { useState } from 'react'
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
 import { Sprout } from 'lucide-react'
 
+// Map Firebase error codes to user-friendly messages
+const getErrorMessage = (errorCode) => {
+  const errorMessages = {
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/user-disabled': 'This account has been disabled. Please contact support.',
+    'auth/user-not-found': 'Invalid email or password.',
+    'auth/wrong-password': 'Invalid email or password.',
+    'auth/invalid-credential': 'Invalid email or password.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/weak-password': 'Password must be at least 6 characters long.',
+    'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+    'auth/network-request-failed': 'Network error. Please check your connection.',
+    'auth/operation-not-allowed': 'This sign-in method is not enabled.',
+  };
+  return errorMessages[errorCode] || 'An error occurred. Please try again.';
+};
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,7 +40,7 @@ export default function Login() {
         await signInWithEmailAndPassword(auth, email, password)
       }
     } catch (err) {
-      setError(err.message)
+      setError(getErrorMessage(err.code))
     } finally {
       setLoading(false)
     }
