@@ -3,9 +3,7 @@
  * Main entry point for all Firebase Cloud Functions
  */
 
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const { onCall } = require("firebase-functions/v2/https");
-const { onSchedule } = require("firebase-functions/v2/scheduler");
+const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -15,6 +13,9 @@ const triggers = require("./triggers");
 const api = require("./api");
 const scheduled = require("./scheduled");
 
+// Define the region for all functions
+const REGION = "us-west3";
+
 // ============================================================================
 // FIRESTORE TRIGGERS
 // ============================================================================
@@ -23,28 +24,25 @@ const scheduled = require("./scheduled");
  * Triggered when new sensor data is written to Firestore
  * Performs real-time analysis and sends alerts if needed
  */
-exports.onSensorData_v2 = onDocumentCreated(
-  { document: "greenhouses/{greenhouseId}/sensors/{sensorId}", region: "us-west3" },
-  triggers.processSensorData
-);
+exports.onSensorData = functions.region(REGION).firestore
+  .document("greenhouses/{greenhouseId}/sensors/{sensorId}")
+  .onCreate(triggers.processSensorData);
 
 /**
  * Triggered when an alert is created
  * Sends push notifications via FCM
  */
-exports.onAlert_v2 = onDocumentCreated(
-  { document: "greenhouses/{greenhouseId}/alerts/{alertId}", region: "us-west3" },
-  triggers.sendAlertNotification
-);
+exports.onAlert = functions.region(REGION).firestore
+  .document("greenhouses/{greenhouseId}/alerts/{alertId}")
+  .onCreate(triggers.sendAlertNotification);
 
 /**
  * Triggered when a user command is created
  * Validates and logs the command
  */
-exports.onUserCommand_v2 = onDocumentCreated(
-  { document: "greenhouses/{greenhouseId}/commands/{commandId}", region: "us-west3" },
-  triggers.logUserCommand
-);
+exports.onUserCommand = functions.region(REGION).firestore
+  .document("greenhouses/{greenhouseId}/commands/{commandId}")
+  .onCreate(triggers.logUserCommand);
 
 // ============================================================================
 // HTTP API ENDPOINTS
@@ -52,28 +50,33 @@ exports.onUserCommand_v2 = onDocumentCreated(
 
 /**
  * Generate a custom authentication token for a device
+ * Called by the Arduino device during initial setup
  */
-exports.generateAuthToken_v2 = onCall({ region: "us-west3" }, api.generateAuthToken);
+exports.generateAuthToken = functions.region(REGION).https.onCall(api.generateAuthToken);
 
 /**
  * Get historical sensor data from BigQuery
+ * Called by the frontend for charts
  */
-exports.getHistoricalData_v2 = onCall({ region: "us-west3" }, api.getHistoricalData);
+exports.getHistoricalData = functions.region(REGION).https.onCall(api.getHistoricalData);
 
 /**
- * Get analytics and statistics
+ * Get analytics data
+ * Called by the frontend for the dashboard
  */
-exports.getAnalytics_v2 = onCall({ region: "us-west3" }, api.getAnalytics);
+exports.getAnalytics = functions.region(REGION).https.onCall(api.getAnalytics);
 
 /**
  * Update greenhouse configuration
+ * Called by the frontend settings page
  */
-exports.updateConfig_v2 = onCall({ region: "us-west3" }, api.updateConfig);
+exports.updateConfig = functions.region(REGION).https.onCall(api.updateConfig);
 
 /**
- * Get current greenhouse status
+ * Get greenhouse status
+ * Called by the frontend dashboard
  */
-exports.getGreenhouseStatus_v2 = onCall({ region: "us-west3" }, api.getGreenhouseStatus);
+exports.getGreenhouseStatus = functions.region(REGION).https.onCall(api.getGreenhouseStatus);
 
 // ============================================================================
 // SCHEDULED FUNCTIONS
@@ -82,35 +85,27 @@ exports.getGreenhouseStatus_v2 = onCall({ region: "us-west3" }, api.getGreenhous
 /**
  * Export sensor data to BigQuery every hour
  */
-exports.exportToBigQuery_v2 = onSchedule(
-  { schedule: "every 1 hours", region: "us-west3" },
-  scheduled.exportToBigQuery
-);
+exports.exportToBigQuery = functions.region(REGION).pubsub
+  .schedule("every 1 hours")
+  .onRun(scheduled.exportToBigQuery);
 
 /**
- * Fetch external weather data every 30 minutes
+ * Fetch weather data every 4 hours
  */
-exports.fetchWeatherData_v2 = onSchedule(
-  { schedule: "every 30 minutes", region: "us-west3" },
-  scheduled.fetchWeatherData
-);
+exports.fetchWeatherData = functions.region(REGION).pubsub
+  .schedule("every 4 hours")
+  .onRun(scheduled.fetchWeatherData);
 
 /**
- * Generate daily summary reports
+ * Generate daily summary report every day at midnight
  */
-exports.generateDailySummary_v2 = onSchedule(
-  {
-    schedule: "every day 00:00",
-    timeZone: "America/Denver",
-    region: "us-west3",
-  },
-  scheduled.generateDailySummary
-);
+exports.generateDailySummary = functions.region(REGION).pubsub
+  .schedule("every 24 hours")
+  .onRun(scheduled.generateDailySummary);
 
 /**
- * Check device health and connectivity
+ * Check device health every 15 minutes
  */
-exports.checkDeviceHealth_v2 = onSchedule(
-  { schedule: "every 5 minutes", region: "us-west3" },
-  scheduled.checkDeviceHealth
-);
+exports.checkDeviceHealth = functions.region(REGION).pubsub
+  .schedule("every 15 minutes")
+  .onRun(scheduled.checkDeviceHealth);
