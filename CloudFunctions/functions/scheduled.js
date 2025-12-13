@@ -7,8 +7,23 @@ const admin = require('firebase-admin');
 const { BigQuery } = require('@google-cloud/bigquery');
 const axios = require('axios');
 
-const db = admin.firestore();
-const bigquery = new BigQuery();
+// Lazy load Firestore and BigQuery
+let db;
+let bigquery;
+
+function getDb() {
+  if (!db) {
+    db = admin.firestore();
+  }
+  return db;
+}
+
+function getBigQuery() {
+  if (!bigquery) {
+    bigquery = new BigQuery();
+  }
+  return bigquery;
+}
 
 /**
  * Export sensor data to BigQuery every hour
@@ -18,7 +33,7 @@ exports.exportToBigQuery = async (context) => {
   
   try {
     // Get all greenhouses
-    const greenhousesSnapshot = await db.collection('greenhouses').get();
+    const greenhousesSnapshot = await getDb().collection('greenhouses').get();
     
     let totalExported = 0;
     
@@ -28,7 +43,7 @@ exports.exportToBigQuery = async (context) => {
       // Get sensor data from the last hour that hasn't been exported
       const oneHourAgo = new Date(Date.now() - 3600000);
       
-      const sensorsSnapshot = await db
+      const sensorsSnapshot = await getDb()
         .collection('greenhouses')
         .doc(greenhouseId)
         .collection('sensors')
@@ -60,13 +75,13 @@ exports.exportToBigQuery = async (context) => {
       });
       
       // Insert into BigQuery
-      await bigquery
+      await getBigQuery()
         .dataset('greenos')
         .table('sensor_data')
         .insert(rows);
       
       // Mark as exported
-      const batch = db.batch();
+      const batch = getDb().batch();
       sensorsSnapshot.forEach(doc => {
         batch.update(doc.ref, { exported: true });
       });
@@ -93,7 +108,7 @@ exports.fetchWeatherData = async (context) => {
   
   try {
     // Get all greenhouses with location data
-    const greenhousesSnapshot = await db
+    const greenhousesSnapshot = await getDb()
       .collection('greenhouses')
       .where('location', '!=', null)
       .get();
@@ -111,7 +126,7 @@ exports.fetchWeatherData = async (context) => {
       const weather = response.data;
       
       // Store weather data
-      await db
+      await getDb()
         .collection('greenhouses')
         .doc(greenhouseDoc.id)
         .collection('weather')
@@ -143,7 +158,7 @@ exports.generateDailySummary = async (context) => {
   console.log('Generating daily summaries...');
   
   try {
-    const greenhousesSnapshot = await db.collection('greenhouses').get();
+    const greenhousesSnapshot = await getDb().collection('greenhouses').get();
     
     for (const greenhouseDoc of greenhousesSnapshot.docs) {
       const greenhouseId = greenhouseDoc.id;
@@ -156,7 +171,7 @@ exports.generateDailySummary = async (context) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const sensorsSnapshot = await db
+      const sensorsSnapshot = await getDb()
         .collection('greenhouses')
         .doc(greenhouseId)
         .collection('sensors')
@@ -182,7 +197,7 @@ exports.generateDailySummary = async (context) => {
       };
       
       // Store summary
-      await db
+      await getDb()
         .collection('greenhouses')
         .doc(greenhouseId)
         .collection('daily_summaries')
@@ -206,13 +221,13 @@ exports.checkDeviceHealth = async (context) => {
   console.log('Checking device health...');
   
   try {
-    const greenhousesSnapshot = await db.collection('greenhouses').get();
+    const greenhousesSnapshot = await getDb().collection('greenhouses').get();
     
     for (const greenhouseDoc of greenhousesSnapshot.docs) {
       const greenhouseId = greenhouseDoc.id;
       
       // Get last sensor reading
-      const lastReadingSnapshot = await db
+      const lastReadingSnapshot = await getDb()
         .collection('greenhouses')
         .doc(greenhouseId)
         .collection('sensors')
@@ -227,7 +242,7 @@ exports.checkDeviceHealth = async (context) => {
       
       // Alert if no data for more than 10 minutes
       if (timeSinceLastReading > 600000) {
-        await db
+        await getDb()
           .collection('greenhouses')
           .doc(greenhouseId)
           .collection('alerts')
@@ -270,7 +285,7 @@ function calculateDailyStats(readings, field) {
 }
 
 async function getAlertsCount(greenhouseId, startDate, endDate) {
-  const alertsSnapshot = await db
+  const alertsSnapshot = await getDb()
     .collection('greenhouses')
     .doc(greenhouseId)
     .collection('alerts')

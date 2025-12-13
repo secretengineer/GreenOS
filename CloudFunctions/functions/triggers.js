@@ -4,7 +4,16 @@
  */
 
 const admin = require('firebase-admin');
-const db = admin.firestore();
+
+// Lazy load Firestore
+let db;
+
+function getDb() {
+  if (!db) {
+    db = admin.firestore();
+  }
+  return db;
+}
 
 /**
  * Process incoming sensor data
@@ -18,7 +27,7 @@ exports.processSensorData = async (snap, context) => {
   
   try {
     // Get greenhouse configuration
-    const configDoc = await db
+    const configDoc = await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .get();
@@ -85,10 +94,10 @@ exports.processSensorData = async (snap, context) => {
     
     // Create alert documents
     if (alerts.length > 0) {
-      const batch = db.batch();
+      const batch = getDb().batch();
       
       alerts.forEach(alert => {
-        const alertRef = db
+        const alertRef = getDb()
           .collection('greenhouses')
           .doc(greenhouseId)
           .collection('alerts')
@@ -124,7 +133,7 @@ exports.sendAlertNotification = async (snap, context) => {
   
   try {
     // Get user tokens for this greenhouse
-    const greenhouseDoc = await db
+    const greenhouseDoc = await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .get();
@@ -199,7 +208,7 @@ exports.logUserCommand = async (snap, context) => {
   
   try {
     // Create audit log entry
-    await db
+    await getDb()
       .collection('greenhouses')
       .doc(greenhouseId)
       .collection('logs')

@@ -8,8 +8,23 @@ const admin = require('firebase-admin');
 const functions = require('firebase-functions');
 const { BigQuery } = require('@google-cloud/bigquery');
 
-const db = admin.firestore();
-const bigquery = new BigQuery();
+// Lazy load Firestore and BigQuery to prevent deployment timeouts
+let db;
+let bigquery;
+
+function getDb() {
+  if (!db) {
+    db = admin.firestore();
+  }
+  return db;
+}
+
+function getBigQuery() {
+  if (!bigquery) {
+    bigquery = new BigQuery();
+  }
+  return bigquery;
+}
 
 /**
  * Generate a custom authentication token for a device
@@ -25,7 +40,7 @@ exports.generateAuthToken = async (data, context) => {
     // Optional: You might want to add a check here to ensure the deviceId is valid
     // and registered in your database before creating a token.
     // For example:
-    // const deviceRef = db.collection('devices').doc(deviceId);
+    // const deviceRef = getDb().collection('devices').doc(deviceId);
     // const doc = await deviceRef.get();
     // if (!doc.exists) {
     //   throw new functions.https.HttpsError('not-found', 'Device not found');
