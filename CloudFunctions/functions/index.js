@@ -13,8 +13,8 @@ const triggers = require('./triggers');
 const api = require('./api');
 const scheduled = require('./scheduled');
 
-// Configure region (v5+ uses options object)
-const region = 'us-west3';
+// Configure region to match Firestore location
+const functionsRegion = functions.region('us-west3');
 
 // ============================================================================
 // FIRESTORE TRIGGERS
