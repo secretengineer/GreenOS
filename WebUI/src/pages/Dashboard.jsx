@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getFirestore, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import { getApp } from 'firebase/app'
 import { greenhouseId } from '../config'
 import { Thermometer, Droplets, Wind, Activity } from 'lucide-react'
 
@@ -12,7 +13,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(null)
 
-  const db = getFirestore()
+  const app = getApp()
+  const db = getFirestore(app)
 
   useEffect(() => {
     // Real-time listener for latest sensor data

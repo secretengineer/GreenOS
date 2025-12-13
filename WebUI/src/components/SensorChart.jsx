@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getFirestore, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import { getApp } from 'firebase/app'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -16,7 +17,8 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 export default function SensorChart({ greenhouseId }) {
   const [chartData, setChartData] = useState(null)
-  const db = getFirestore()
+  const app = getApp()
+  const db = getFirestore(app)
 
   useEffect(() => {
     const q = query(

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { getFirestore, collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import { getApp } from 'firebase/app'
 import { AlertCircle, AlertTriangle, Info } from 'lucide-react'
 
 export default function AlertList({ greenhouseId, limit: maxLimit = 10 }) {
   const [alerts, setAlerts] = useState([])
-  const db = getFirestore()
+  const app = getApp()
+  const db = getFirestore(app)
 
   useEffect(() => {
     const q = query(
