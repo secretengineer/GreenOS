@@ -8,6 +8,9 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
+// Set region to match Firestore location
+const functionsRegion = functions.region('us-west3');
+
 // Import function modules
 const triggers = require('./triggers');
 const api = require('./api');
@@ -21,7 +24,7 @@ const scheduled = require('./scheduled');
  * Triggered when new sensor data is written to Firestore
  * Performs real-time analysis and sends alerts if needed
  */
-exports.onSensorData = functions.firestore
+exports.onSensorData = functionsRegion.firestore
   .document('greenhouses/{greenhouseId}/sensors/{sensorId}')
   .onCreate(triggers.processSensorData);
 
@@ -29,7 +32,7 @@ exports.onSensorData = functions.firestore
  * Triggered when an alert is created
  * Sends push notifications via FCM
  */
-exports.onAlert = functions.firestore
+exports.onAlert = functionsRegion.firestore
   .document('greenhouses/{greenhouseId}/alerts/{alertId}')
   .onCreate(triggers.sendAlertNotification);
 
@@ -37,7 +40,7 @@ exports.onAlert = functions.firestore
  * Triggered when a user command is created
  * Validates and logs the command
  */
-exports.onUserCommand = functions.firestore
+exports.onUserCommand = functionsRegion.firestore
   .document('greenhouses/{greenhouseId}/commands/{commandId}')
   .onCreate(triggers.logUserCommand);
 
@@ -48,28 +51,28 @@ exports.onUserCommand = functions.firestore
 /**
  * Generate a custom authentication token for a device
  */
-exports.generateAuthToken = functions.https.onCall(api.generateAuthToken);
+exports.generateAuthToken = functionsRegion.https.onCall(api.generateAuthToken);
 
 
 /**
  * Get historical sensor data from BigQuery
  */
-exports.getHistoricalData = functions.https.onCall(api.getHistoricalData);
+exports.getHistoricalData = functionsRegion.https.onCall(api.getHistoricalData);
 
 /**
  * Get analytics and statistics
  */
-exports.getAnalytics = functions.https.onCall(api.getAnalytics);
+exports.getAnalytics = functionsRegion.https.onCall(api.getAnalytics);
 
 /**
  * Update greenhouse configuration
  */
-exports.updateConfig = functions.https.onCall(api.updateConfig);
+exports.updateConfig = functionsRegion.https.onCall(api.updateConfig);
 
 /**
  * Get current greenhouse status
  */
-exports.getGreenhouseStatus = functions.https.onCall(api.getGreenhouseStatus);
+exports.getGreenhouseStatus = functionsRegion.https.onCall(api.getGreenhouseStatus);
 
 // ============================================================================
 // SCHEDULED FUNCTIONS
@@ -78,21 +81,21 @@ exports.getGreenhouseStatus = functions.https.onCall(api.getGreenhouseStatus);
 /**
  * Export sensor data to BigQuery every hour
  */
-exports.exportToBigQuery = functions.pubsub
+exports.exportToBigQuery = functionsRegion.pubsub
   .schedule('every 1 hours')
   .onRun(scheduled.exportToBigQuery);
 
 /**
  * Fetch external weather data every 30 minutes
  */
-exports.fetchWeatherData = functions.pubsub
+exports.fetchWeatherData = functionsRegion.pubsub
   .schedule('every 30 minutes')
   .onRun(scheduled.fetchWeatherData);
 
 /**
  * Generate daily summary reports
  */
-exports.generateDailySummary = functions.pubsub
+exports.generateDailySummary = functionsRegion.pubsub
   .schedule('every day 00:00')
   .timeZone('America/Denver')
   .onRun(scheduled.generateDailySummary);
@@ -100,6 +103,6 @@ exports.generateDailySummary = functions.pubsub
 /**
  * Check device health and connectivity
  */
-exports.checkDeviceHealth = functions.pubsub
+exports.checkDeviceHealth = functionsRegion.pubsub
   .schedule('every 5 minutes')
   .onRun(scheduled.checkDeviceHealth);
