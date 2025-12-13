@@ -8,13 +8,13 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
-// Set region to match Firestore location
-const functionsRegion = functions.region('us-west3');
-
 // Import function modules
 const triggers = require('./triggers');
 const api = require('./api');
 const scheduled = require('./scheduled');
+
+// Configure region (v5+ uses options object)
+const region = 'us-west3';
 
 // ============================================================================
 // FIRESTORE TRIGGERS
@@ -24,7 +24,9 @@ const scheduled = require('./scheduled');
  * Triggered when new sensor data is written to Firestore
  * Performs real-time analysis and sends alerts if needed
  */
-exports.onSensorData = functionsRegion.firestore
+exports.onSensorData = functions
+  .region(region)
+  .firestore
   .document('greenhouses/{greenhouseId}/sensors/{sensorId}')
   .onCreate(triggers.processSensorData);
 
@@ -32,7 +34,9 @@ exports.onSensorData = functionsRegion.firestore
  * Triggered when an alert is created
  * Sends push notifications via FCM
  */
-exports.onAlert = functionsRegion.firestore
+exports.onAlert = functions
+  .region(region)
+  .firestore
   .document('greenhouses/{greenhouseId}/alerts/{alertId}')
   .onCreate(triggers.sendAlertNotification);
 
@@ -40,7 +44,9 @@ exports.onAlert = functionsRegion.firestore
  * Triggered when a user command is created
  * Validates and logs the command
  */
-exports.onUserCommand = functionsRegion.firestore
+exports.onUserCommand = functions
+  .region(region)
+  .firestore
   .document('greenhouses/{greenhouseId}/commands/{commandId}')
   .onCreate(triggers.logUserCommand);
 
@@ -51,28 +57,38 @@ exports.onUserCommand = functionsRegion.firestore
 /**
  * Generate a custom authentication token for a device
  */
-exports.generateAuthToken = functionsRegion.https.onCall(api.generateAuthToken);
+exports.generateAuthToken = functions
+  .region(region)
+  .https.onCall(api.generateAuthToken);
 
 
 /**
  * Get historical sensor data from BigQuery
  */
-exports.getHistoricalData = functionsRegion.https.onCall(api.getHistoricalData);
+exports.getHistoricalData = functions
+  .region(region)
+  .https.onCall(api.getHistoricalData);
 
 /**
  * Get analytics and statistics
  */
-exports.getAnalytics = functionsRegion.https.onCall(api.getAnalytics);
+exports.getAnalytics = functions
+  .region(region)
+  .https.onCall(api.getAnalytics);
 
 /**
  * Update greenhouse configuration
  */
-exports.updateConfig = functionsRegion.https.onCall(api.updateConfig);
+exports.updateConfig = functions
+  .region(region)
+  .https.onCall(api.updateConfig);
 
 /**
  * Get current greenhouse status
  */
-exports.getGreenhouseStatus = functionsRegion.https.onCall(api.getGreenhouseStatus);
+exports.getGreenhouseStatus = functions
+  .region(region)
+  .https.onCall(api.getGreenhouseStatus);
 
 // ============================================================================
 // SCHEDULED FUNCTIONS
@@ -81,21 +97,27 @@ exports.getGreenhouseStatus = functionsRegion.https.onCall(api.getGreenhouseStat
 /**
  * Export sensor data to BigQuery every hour
  */
-exports.exportToBigQuery = functionsRegion.pubsub
+exports.exportToBigQuery = functions
+  .region(region)
+  .pubsub
   .schedule('every 1 hours')
   .onRun(scheduled.exportToBigQuery);
 
 /**
  * Fetch external weather data every 30 minutes
  */
-exports.fetchWeatherData = functionsRegion.pubsub
+exports.fetchWeatherData = functions
+  .region(region)
+  .pubsub
   .schedule('every 30 minutes')
   .onRun(scheduled.fetchWeatherData);
 
 /**
  * Generate daily summary reports
  */
-exports.generateDailySummary = functionsRegion.pubsub
+exports.generateDailySummary = functions
+  .region(region)
+  .pubsub
   .schedule('every day 00:00')
   .timeZone('America/Denver')
   .onRun(scheduled.generateDailySummary);
@@ -103,6 +125,8 @@ exports.generateDailySummary = functionsRegion.pubsub
 /**
  * Check device health and connectivity
  */
-exports.checkDeviceHealth = functionsRegion.pubsub
+exports.checkDeviceHealth = functions
+  .region(region)
+  .pubsub
   .schedule('every 5 minutes')
   .onRun(scheduled.checkDeviceHealth);
