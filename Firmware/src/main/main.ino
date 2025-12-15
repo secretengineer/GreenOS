@@ -73,14 +73,21 @@ bool sdCardAvailable = false;
 // ============================================================================
 
 void setup() {
-  Serial.begin(115200);
-  delay(1000);  // Wait for serial to stabilize
+  Serial.begin(9600);  // Arduino UNO Q Zephyr only supports 9600 and 19200
+  delay(3000);  // Extended delay for Zephyr Serial initialization
   
-  Serial.println("\n\n");
+  // Send multiple newlines to clear any buffer
+  for (int i = 0; i < 5; i++) {
+    Serial.println();
+  }
+  
   Serial.println("╔════════════════════════════════════════╗");
   Serial.println("║   GreenOS - Intelligent Greenhouse     ║");
   Serial.println("║   Arduino UNO Q Firmware v1.0          ║");
   Serial.println("╚════════════════════════════════════════╝");
+  Serial.println();
+  Serial.println("Board: Arduino UNO Q (STM32U5 + ESP32-S3)");
+  Serial.println("Firmware: v1.0 - Local Mode");
   Serial.println();
   
   // Initialize status LED
