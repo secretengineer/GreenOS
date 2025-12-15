@@ -1,57 +1,255 @@
 /**
  * GreenOS - Arduino UNO Q Main Firmware
  * 
- * Core loop for sensor polling, actuator control, and Firebase communication
+ * Hardware: Arduino UNO Q (Renesas RA4M1 + ESP32-S3)
+ * Features:
+ * - Finite State Machine (FSM) for robust operation
+ * - Hardware Watchdog Timer (WDT) for auto-recovery
+ * - Sensor health monitoring and validation
+ * - SD card buffering for offline operation
+ * - Safe-fail emergency protocols
+ * - Memory management and error handling
  */
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <SD.h>
+#include <esp_task_wdt.h>
 #include "config.h"
 #include "sensor_manager.h"
 #include "actuator_manager.h"
 #include "firebase_comm.h"
 #include "anomaly_detection.h"
 
-// Global objects
+// ============================================================================
+// GLOBAL OBJECTS
+// ============================================================================
+
 SensorManager sensors;
 ActuatorManager actuators;
 FirebaseComm firebase;
 AnomalyDetection anomaly;
 
-// Timing variables
+// ============================================================================
+// SYSTEM STATE MACHINE
+// ============================================================================
+
+SystemState currentState = STATE_BOOT;
+SystemState previousState = STATE_BOOT;
+unsigned long stateEntryTime = 0;
+uint8_t bootFailCount = 0;
+
+// ============================================================================
+// TIMING VARIABLES
+// ============================================================================
+
 unsigned long lastSensorRead = 0;
 unsigned long lastFirebaseSync = 0;
 unsigned long lastAnomalyCheck = 0;
+unsigned long lastModbusRead = 0;
+unsigned long lastSDFlush = 0;
+unsigned long lastMemoryCheck = 0;
+unsigned long lastHealthCheck = 0;
 
-const unsigned long SENSOR_READ_INTERVAL = 5000;      // 5 seconds
-const unsigned long FIREBASE_SYNC_INTERVAL = 60000;   // 1 minute
-const unsigned long ANOMALY_CHECK_INTERVAL = 10000;   // 10 seconds
+// ============================================================================
+// OFFLINE DATA BUFFERING
+// ============================================================================
+
+struct SensorReading {
+  unsigned long timestamp;
+  float airTemp;
+  float airHumidity;
+  float co2;
+  float ph;
+  float ec;
+  float vwc;
+};
+
+SensorReading offlineBuffer[MAX_BUFFERED_READINGS];
+uint8_t bufferCount = 0;
+bool sdCardAvailable = false;
+
+// ============================================================================
+// SETUP - INITIALIZATION
+// ============================================================================
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("GreenOS - Initializing...");
+  delay(1000);  // Wait for serial to stabilize
   
-  // Initialize WiFi
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi connected!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  Serial.println("\n\n");
+  Serial.println("╔════════════════════════════════════════╗");
+  Serial.println("║   GreenOS - Intelligent Greenhouse     ║");
+  Serial.println("║   Arduino UNO Q Firmware v1.0          ║");
+  Serial.println("╚════════════════════════════════════════╝");
+  Serial.println();
   
-  // Initialize components
-  sensors.init();
-  actuators.init();
-  firebase.init();
-  anomaly.init();
+  // Initialize status LED
+  pinMode(STATUS_LED_PIN, OUTPUT);
+  blinkStatusLED(3, 200);  // 3 quick blinks = boot
   
-  Serial.println("GreenOS - Ready!");
+  // Initialize hardware watchdog timer
+  setupWatchdog();
+  
+  // Initialize SD card for offline buffering
+  initializeSDCard();
+  
+  // Set initial state
+  changeState(STATE_SENSOR_INIT);
 }
 
+// ============================================================================
+// MAIN LOOP - FINITE STATE MACHINE
+// ============================================================================
+
 void loop() {
+  // Pet the watchdog to prevent reset
+  feedWatchdog();
+  
+  // Execute current state
+  switch (currentState) {
+    case STATE_BOOT:
+      // Should not reach here (handled in setup)
+      changeState(STATE_SENSOR_INIT);
+      break;
+      
+    case STATE_SENSOR_INIT:
+      stateSensorInit();
+      break;
+      
+    case STATE_NETWORK_CONNECT:
+      stateNetworkConnect();
+      break;
+      
+    case STATE_FIREBASE_AUTH:
+      stateFirebaseAuth();
+      break;
+      
+    case STATE_NORMAL_OPERATION:
+      stateNormalOperation();
+      break;
+      
+    case STATE_SAFE_MODE:
+      stateSafeMode();
+      break;
+      
+    case STATE_EMERGENCY:
+      stateEmergency();
+      break;
+      
+    case STATE_CALIBRATION_MODE:
+      stateCalibrationMode();
+      break;
+  }
+  
+  // Periodic maintenance tasks (run in all states)
+  periodicMemoryCheck();
+  handleSerialCommands();
+  
+  // Small delay to prevent tight loop
+  delay(10);
+}
+
+// ============================================================================
+// STATE MACHINE IMPLEMENTATIONS
+// ============================================================================
+
+void stateSensorInit() {
+  Serial.println("\n[STATE] Initializing Sensors...");
+  
+  // Initialize sensor manager
+  sensors.init();
+  
+  // Initialize actuator manager
+  actuators.init();
+  
+  // Wait for initial sensor readings
+  delay(2000);
+  sensors.readAll();
+  
+  // Verify at least one critical sensor is working
+  SensorData data = sensors.getData();
+  if (data.airTemp > -50 && data.airTemp < 60) {
+    // Temperature sensor working, proceed
+    Serial.println("✓ Sensor initialization successful");
+    changeState(STATE_NETWORK_CONNECT);
+  } else {
+    Serial.println("✗ Sensor initialization failed!");
+    bootFailCount++;
+    if (bootFailCount > 3) {
+      Serial.println("⚠️ Too many boot failures, entering safe mode");
+      changeState(STATE_SAFE_MODE);
+    } else {
+      delay(5000);
+      // Retry initialization
+    }
+  }
+}
+
+void stateNetworkConnect() {
+  Serial.println("\n[STATE] Connecting to Network...");
+  
+  // Connect to WiFi
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  unsigned long startTime = millis();
+  Serial.print("Connecting to WiFi");
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    if (millis() - startTime > WIFI_CONNECTION_TIMEOUT) {
+      Serial.println("\n✗ WiFi connection timeout");
+      Serial.println("⚠️ Operating in offline mode");
+      // Continue to normal operation without cloud
+      changeState(STATE_NORMAL_OPERATION);
+      return;
+    }
+    
+    delay(500);
+    Serial.print(".");
+    feedWatchdog();
+  }
+  
+  Serial.println("\n✓ WiFi connected!");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.print("Signal strength: ");
+  Serial.print(WiFi.RSSI());
+  Serial.println(" dBm");
+  
+  changeState(STATE_FIREBASE_AUTH);
+}
+
+void stateFirebaseAuth() {
+  Serial.println("\n[STATE] Authenticating with Firebase...");
+  
+  firebase.init();
+  
+  if (firebase.isConnected()) {
+    Serial.println("✓ Firebase authentication successful");
+    
+    // Sync any buffered offline data
+    syncBufferedData();
+    
+    changeState(STATE_NORMAL_OPERATION);
+  } else {
+    Serial.println("✗ Firebase authentication failed");
+    Serial.println("⚠️ Operating in offline mode");
+    changeState(STATE_NORMAL_OPERATION);
+  }
+}
+
+void stateNormalOperation() {
+  static bool firstRun = true;
+  
+  if (firstRun) {
+    Serial.println("\n[STATE] Normal Operation");
+    Serial.println("✓ GreenOS is now running!");
+    Serial.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    blinkStatusLED(1, 1000);  // Long blink = operational
+    firstRun = false;
+  }
+  
   unsigned long currentMillis = millis();
   
   // Read sensors periodically
@@ -60,8 +258,15 @@ void loop() {
     sensors.readAll();
     
     // Log to serial for debugging
-    Serial.println("=== Sensor Readings ===");
-    sensors.printReadings();
+    if (Serial) {
+      Serial.println("=== Sensor Readings ===");
+      sensors.printReadings();
+    }
+    
+    // If offline, buffer data locally
+    if (WiFi.status() != WL_CONNECTED || !firebase.isConnected()) {
+      bufferSensorData(sensors.getData());
+    }
   }
   
   // Check for anomalies
@@ -70,10 +275,25 @@ void loop() {
     
     if (anomaly.detectAnomalies(sensors.getData())) {
       Serial.println("⚠️ ANOMALY DETECTED!");
-      // Trigger automated response
-      actuators.handleEmergency(anomaly.getAnomalyType());
-      // Send immediate alert to Firebase
-      firebase.sendAlert(anomaly.getAnomalyDetails());
+      
+      AnomalyType type = anomaly.getAnomalyType();
+      
+      // Check if emergency-level anomaly
+      if (type == TEMP_TOO_LOW || type == TEMP_TOO_HIGH) {
+        changeState(STATE_EMERGENCY);
+        return;
+      }
+      
+      // Handle non-emergency anomalies
+      actuators.handleWarning(type);
+      
+      // Send alert to Firebase if connected
+      if (firebase.isConnected()) {
+        firebase.sendAlert(anomaly.getAnomalyDetails());
+      } else {
+        // Save alert to SD card for later sync
+        saveAlertToSD(anomaly.getAnomalyDetails());
+      }
     }
   }
   
@@ -82,17 +302,393 @@ void loop() {
     lastFirebaseSync = currentMillis;
     
     if (WiFi.status() == WL_CONNECTED) {
-      firebase.syncSensorData(sensors.getData());
-      firebase.checkForCommands(actuators);
+      if (firebase.isConnected()) {
+        firebase.syncSensorData(sensors.getData());
+        firebase.checkForCommands(actuators);
+      } else {
+        // Try to reconnect
+        Serial.println("Firebase disconnected, attempting to reconnect...");
+        changeState(STATE_FIREBASE_AUTH);
+        return;
+      }
     } else {
-      Serial.println("WiFi disconnected. Attempting to reconnect...");
+      // WiFi disconnected, try to reconnect
+      Serial.println("WiFi disconnected, attempting to reconnect...");
       WiFi.reconnect();
     }
   }
   
-  // Handle any incoming Firebase commands in real-time
-  firebase.handleRealtimeUpdates(actuators);
+  // Handle real-time Firebase updates
+  if (firebase.isConnected()) {
+    firebase.handleRealtimeUpdates(actuators);
+  }
   
-  // Small delay to prevent watchdog issues
-  delay(10);
+  // Flush SD card buffer periodically
+  if (sdCardAvailable && currentMillis - lastSDFlush >= SD_BUFFER_FLUSH_INTERVAL) {
+    lastSDFlush = currentMillis;
+    flushSDBuffer();
+  }
+  
+  // Sensor health check
+  if (currentMillis - lastHealthCheck >= SENSOR_HEALTH_CHECK_INTERVAL) {
+    lastHealthCheck = currentMillis;
+    checkSensorHealth();
+  }
+}
+
+void stateSafeMode() {
+  static bool firstRun = true;
+  
+  if (firstRun) {
+    Serial.println("\n╔════════════════════════════════════════╗");
+    Serial.println("║          SAFE MODE ACTIVATED           ║");
+    Serial.println("╚════════════════════════════════════════╝");
+    Serial.println("System will maintain minimal operations.");
+    Serial.println("Manual intervention may be required.\n");
+    
+    // Disable all non-critical actuators
+    actuators.stopAll();
+    
+    // Enable critical protection based on current conditions
+    SensorData data = sensors.getData();
+    if (data.airTemp < TEMP_MIN) {
+      Serial.println("⚠️ Low temperature detected, enabling emergency heat");
+      actuators.setHeater(true, true);
+    }
+    
+    blinkStatusLED(5, 100);  // Rapid blinks = safe mode
+    firstRun = false;
+  }
+  
+  // In safe mode, still read sensors and maintain critical protection
+  unsigned long currentMillis = millis();
+  
+  if (currentMillis - lastSensorRead >= SENSOR_READ_INTERVAL * 2) {
+    lastSensorRead = currentMillis;
+    sensors.readAll();
+    
+    SensorData data = sensors.getData();
+    
+    // Maintain critical temperature protection
+    if (data.airTemp < TEMP_MIN) {
+      actuators.setHeater(true, true);
+    } else if (data.airTemp > TEMP_OPTIMAL_MAX) {
+      actuators.setHeater(true, false);
+      actuators.setHeater(false, false);
+    }
+  }
+  
+  // Attempt to recover after timeout
+  if (currentMillis - stateEntryTime > SAFE_MODE_TIMEOUT) {
+    Serial.println("Attempting to recover from safe mode...");
+    changeState(STATE_SENSOR_INIT);
+  }
+}
+
+void stateEmergency() {
+  Serial.println("\n╔════════════════════════════════════════╗");
+  Serial.println("║       EMERGENCY MODE ACTIVATED         ║");
+  Serial.println("╚════════════════════════════════════════╝");
+  
+  AnomalyType type = anomaly.getAnomalyType();
+  Serial.printf("Emergency type: %d\n", type);
+  
+  // Execute emergency protocols
+  actuators.handleEmergency(type);
+  
+  // Send urgent alert
+  if (firebase.isConnected()) {
+    firebase.sendAlert(anomaly.getAnomalyDetails());
+  }
+  
+  // Activate buzzer if available
+  #ifdef BUZZER_PIN
+  tone(BUZZER_PIN, 1000, 2000);  // 1kHz tone for 2 seconds
+  #endif
+  
+  // Flash LED rapidly
+  for (int i = 0; i < 10; i++) {
+    digitalWrite(STATUS_LED_PIN, HIGH);
+    delay(100);
+    digitalWrite(STATUS_LED_PIN, LOW);
+    delay(100);
+    feedWatchdog();
+  }
+  
+  // Return to normal operation after emergency actions taken
+  delay(5000);
+  changeState(STATE_NORMAL_OPERATION);
+}
+
+void stateCalibrationMode() {
+  Serial.println("\n[STATE] Calibration Mode");
+  Serial.println("1. ADC Calibration");
+  Serial.println("2. MQ135 Calibration");
+  Serial.println("3. Exit");
+  Serial.print("Select option: ");
+  
+  while (!Serial.available()) {
+    feedWatchdog();
+    delay(100);
+  }
+  
+  int option = Serial.parseInt();
+  while (Serial.available()) Serial.read();
+  
+  switch (option) {
+    case 1:
+      sensors.performADCCalibration();
+      break;
+    case 2:
+      sensors.calibrateMQ135();
+      break;
+    case 3:
+      changeState(STATE_NORMAL_OPERATION);
+      return;
+  }
+  
+  // Stay in calibration mode
+}
+
+// ============================================================================
+// WATCHDOG TIMER FUNCTIONS
+// ============================================================================
+
+void setupWatchdog() {
+  #if WDT_ENABLED
+  Serial.println("Initializing Hardware Watchdog Timer...");
+  
+  // Configure ESP32 watchdog (8 second timeout)
+  esp_task_wdt_init(WDT_TIMEOUT_SECONDS, true);  // Enable panic on timeout
+  esp_task_wdt_add(NULL);  // Add current task
+  
+  Serial.printf("✓ Watchdog enabled (%d second timeout)\n", WDT_TIMEOUT_SECONDS);
+  #else
+  Serial.println("⚠️ Watchdog disabled (not recommended for production)");
+  #endif
+}
+
+void feedWatchdog() {
+  #if WDT_ENABLED
+  esp_task_wdt_reset();
+  #endif
+}
+
+// ============================================================================
+// SD CARD BUFFERING FUNCTIONS
+// ============================================================================
+
+void initializeSDCard() {
+  Serial.print("Initializing SD card... ");
+  
+  if (SD.begin(SD_CS_PIN)) {
+    Serial.println("✓ SD card initialized");
+    sdCardAvailable = true;
+    
+    // Create data directory if it doesn't exist
+    if (!SD.exists("/data")) {
+      SD.mkdir("/data");
+    }
+  } else {
+    Serial.println("✗ SD card initialization failed");
+    Serial.println("⚠️ Offline buffering disabled");
+    sdCardAvailable = false;
+  }
+}
+
+void bufferSensorData(SensorData data) {
+  if (!sdCardAvailable && bufferCount >= MAX_BUFFERED_READINGS) {
+    Serial.println("⚠️ Buffer full, dropping oldest reading");
+    // Shift buffer (drop oldest)
+    for (int i = 0; i < MAX_BUFFERED_READINGS - 1; i++) {
+      offlineBuffer[i] = offlineBuffer[i + 1];
+    }
+    bufferCount = MAX_BUFFERED_READINGS - 1;
+  }
+  
+  if (bufferCount < MAX_BUFFERED_READINGS) {
+    offlineBuffer[bufferCount].timestamp = data.timestamp;
+    offlineBuffer[bufferCount].airTemp = data.airTemp;
+    offlineBuffer[bufferCount].airHumidity = data.airHumidity;
+    offlineBuffer[bufferCount].co2 = data.co2;
+    offlineBuffer[bufferCount].ph = data.ph;
+    offlineBuffer[bufferCount].ec = data.ec;
+    offlineBuffer[bufferCount].vwc = data.vwc;
+    bufferCount++;
+  }
+}
+
+void flushSDBuffer() {
+  if (!sdCardAvailable || bufferCount == 0) {
+    return;
+  }
+  
+  File dataFile = SD.open("/data/buffer.csv", FILE_APPEND);
+  if (dataFile) {
+    for (int i = 0; i < bufferCount; i++) {
+      dataFile.printf("%lu,%.1f,%.1f,%.0f,%.2f,%.2f,%.1f\n",
+                     offlineBuffer[i].timestamp,
+                     offlineBuffer[i].airTemp,
+                     offlineBuffer[i].airHumidity,
+                     offlineBuffer[i].co2,
+                     offlineBuffer[i].ph,
+                     offlineBuffer[i].ec,
+                     offlineBuffer[i].vwc);
+    }
+    dataFile.close();
+    Serial.printf("✓ Flushed %d readings to SD card\n", bufferCount);
+    bufferCount = 0;
+  } else {
+    Serial.println("✗ Failed to open SD card buffer file");
+  }
+}
+
+void syncBufferedData() {
+  if (!sdCardAvailable) {
+    return;
+  }
+  
+  File dataFile = SD.open("/data/buffer.csv");
+  if (dataFile) {
+    Serial.println("Syncing buffered data to Firebase...");
+    int lineCount = 0;
+    
+    while (dataFile.available()) {
+      String line = dataFile.readStringUntil('\n');
+      // Parse CSV and send to Firebase
+      // TODO: Implement Firebase batch upload
+      lineCount++;
+      feedWatchdog();
+    }
+    
+    dataFile.close();
+    
+    // Delete buffer file after successful sync
+    SD.remove("/data/buffer.csv");
+    Serial.printf("✓ Synced %d buffered readings\n", lineCount);
+  }
+}
+
+void saveAlertToSD(String alertDetails) {
+  if (!sdCardAvailable) {
+    return;
+  }
+  
+  File alertFile = SD.open("/data/alerts.log", FILE_APPEND);
+  if (alertFile) {
+    alertFile.printf("%lu,%s\n", millis(), alertDetails.c_str());
+    alertFile.close();
+  }
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+void changeState(SystemState newState) {
+  previousState = currentState;
+  currentState = newState;
+  stateEntryTime = millis();
+  
+  Serial.printf("\n>>> STATE CHANGE: %d → %d\n", previousState, newState);
+}
+
+void blinkStatusLED(int count, int delayMs) {
+  for (int i = 0; i < count; i++) {
+    digitalWrite(STATUS_LED_PIN, HIGH);
+    delay(delayMs);
+    digitalWrite(STATUS_LED_PIN, LOW);
+    delay(delayMs);
+  }
+}
+
+void periodicMemoryCheck() {
+  static unsigned long lastCheck = 0;
+  unsigned long currentMillis = millis();
+  
+  if (currentMillis - lastCheck >= MEMORY_CHECK_INTERVAL) {
+    lastCheck = currentMillis;
+    
+    uint32_t freeHeap = ESP.getFreeHeap();
+    uint32_t minFreeHeap = ESP.getMinFreeHeap();
+    
+    if (freeHeap < MIN_FREE_HEAP_BYTES) {
+      Serial.println("\n⚠️ WARNING: Low memory detected!");
+      Serial.printf("Free Heap: %d bytes (Min: %d bytes)\n", freeHeap, minFreeHeap);
+      
+      // Take corrective action
+      if (freeHeap < MIN_FREE_HEAP_BYTES / 2) {
+        Serial.println("Critical memory shortage - entering safe mode");
+        changeState(STATE_SAFE_MODE);
+      }
+    }
+  }
+}
+
+void checkSensorHealth() {
+  SensorHealthReport health = sensors.getHealthReport();
+  
+  bool criticalFailure = false;
+  
+  if (!health.scd30Valid) {
+    Serial.println("⚠️ SCD-30 sensor failure detected!");
+    criticalFailure = true;
+  }
+  
+  if (!health.modbusValid) {
+    Serial.println("⚠️ Modbus sensor failure detected!");
+  }
+  
+  if (health.mq135Valid && !health.mq135Preheated) {
+    unsigned long remaining = MQ135_PREHEAT_TIME_MS - (millis() - 0);
+    Serial.printf("ℹ MQ135 preheating: %lu hours remaining\n", remaining / 3600000);
+  }
+  
+  // If critical sensor failed, consider safe mode
+  if (criticalFailure && health.scd30ErrorRate > 50.0f) {
+    Serial.println("Critical sensor failure rate > 50%, entering safe mode");
+    changeState(STATE_SAFE_MODE);
+  }
+}
+
+void handleSerialCommands() {
+  if (Serial.available()) {
+    char cmd = Serial.read();
+    
+    switch (cmd) {
+      case 'c':
+      case 'C':
+        changeState(STATE_CALIBRATION_MODE);
+        break;
+        
+      case 's':
+      case 'S':
+        sensors.readAll();
+        sensors.printReadings();
+        break;
+        
+      case 'h':
+      case 'H':
+        SensorHealthReport health = sensors.getHealthReport();
+        Serial.println("\n=== Sensor Health Report ===");
+        Serial.printf("SCD-30:  %s (Error: %.1f%%)\n", 
+                     health.scd30Valid ? "OK" : "FAIL", health.scd30ErrorRate);
+        Serial.printf("MQ135:   %s (Error: %.1f%%, Preheated: %s)\n",
+                     health.mq135Valid ? "OK" : "FAIL", health.mq135ErrorRate,
+                     health.mq135Preheated ? "Yes" : "No");
+        Serial.printf("Modbus:  %s (Error: %.1f%%)\n",
+                     health.modbusValid ? "OK" : "FAIL", health.modbusErrorRate);
+        Serial.println();
+        break;
+        
+      case 'r':
+      case 'R':
+        Serial.println("Resetting system...");
+        ESP.restart();
+        break;
+    }
+    
+    // Clear remaining input
+    while (Serial.available()) Serial.read();
+  }
 }

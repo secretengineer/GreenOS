@@ -1,18 +1,14 @@
 /**
  * GreenOS - Actuator Manager
  * 
- * Handles control of all greenhouse actuators (heaters, fans, pumps, lights)
+ * Handles control of all greenhouse actuators with safety features
  */
 
 #ifndef ACTUATOR_MANAGER_H
 #define ACTUATOR_MANAGER_H
 
 #include <Arduino.h>
-
-enum ActuatorState {
-  OFF = 0,
-  ON = 1
-};
+#include "anomaly_detection.h"
 
 enum EmergencyType {
   LOW_TEMP,
@@ -23,14 +19,6 @@ enum EmergencyType {
 };
 
 class ActuatorManager {
-private:
-  ActuatorState heaterPrimary;
-  ActuatorState heaterSecondary;
-  ActuatorState fanExhaust;
-  ActuatorState fanCirculation;
-  ActuatorState pumpIrrigation;
-  ActuatorState lightGrow;
-  
 public:
   ActuatorManager();
   void init();
@@ -41,15 +29,27 @@ public:
   void setPump(bool state);
   void setLight(bool state);
   
-  // Emergency responses
+  // Emergency and warning responses
   void handleEmergency(EmergencyType type);
-  void stopAll();
+  void handleWarning(AnomalyType type);
   
-  // Status
+  // System control
+  void stopAll();
   void printStatus();
   
+  // State queries
+  bool isHeaterOn(bool primary);
+  bool isFanOn(bool exhaust);
+  bool isPumpOn();
+  bool isLightOn();
+  
 private:
-  void activateRelay(int pin, bool state);
+  // Emergency protocols
+  void emergencyLowTemperature();
+  void emergencyHighTemperature();
+  void emergencySecurityBreach();
+  void emergencyWaterLeak();
+  void emergencyPowerFailure();
 };
 
 #endif // ACTUATOR_MANAGER_H
