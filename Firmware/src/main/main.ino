@@ -190,35 +190,12 @@ void stateSensorInit() {
 }
 
 void stateNetworkConnect() {
-  Serial.println("\n[STATE] Connecting to Network...");
+  // STUB: WiFi library has BSP incompatibility - skip network connection
+  Serial.println("\n[STATE] Network Connection (Skipped - WiFi BSP issue)");
+  Serial.println("⚠️  WiFi disabled due to Arduino UNO Q BSP incompatibility");
+  Serial.println("ℹ️  System will operate in local mode (Serial Monitor only)");
   
-  // Connect to WiFi
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  
-  unsigned long startTime = millis();
-  Serial.print("Connecting to WiFi");
-  
-  while (WiFi.status() != WL_CONNECTED) {
-    if (millis() - startTime > WIFI_CONNECTION_TIMEOUT) {
-      Serial.println("\n✗ WiFi connection timeout");
-      Serial.println("⚠️ Operating in offline mode");
-      // Continue to normal operation without cloud
-      changeState(STATE_NORMAL_OPERATION);
-      return;
-    }
-    
-    delay(500);
-    Serial.print(".");
-    feedWatchdog();
-  }
-  
-  Serial.println("\n✓ WiFi connected!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("Signal strength: ");
-  Serial.print(WiFi.RSSI());
-  Serial.println(" dBm");
-  
+  // Skip to Firebase auth (which will also fail gracefully)
   changeState(STATE_FIREBASE_AUTH);
 }
 
