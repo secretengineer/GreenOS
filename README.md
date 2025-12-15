@@ -65,37 +65,57 @@ The GreenOS architecture is a hybrid edge-cloud system, combining the immediate 
 
 ```mermaid
 graph TD
-    subgraph Edge [Greenhouse - Edge]
-        UNO[Arduino UNO Q]
-        Sensors[Sensors]
-        Actuators[Actuators]
+    subgraph Edge["Greenhouse - Edge Device"]
+        UNO["Arduino UNO Q<br/>(Edge Controller)"]
+        Sensors["Environmental Sensors<br/>SCD-30, MQ135, Modbus"]
+        Actuators["Actuators<br/>Heaters, Fans, Pumps"]
         UNO --> Sensors
         UNO --> Actuators
     end
 
-    subgraph Cloud [Firebase and Google Cloud]
-        Firestore[Cloud Firestore]
-        Functions[Cloud Functions]
-        Auth[Firebase Auth]
-        FCM[Firebase Cloud Messaging]
-        Storage[Cloud Storage]
-        BigQuery[BigQuery]
-        VertexAI[Vertex AI]
-        SecretManager[Secret Manager]
+    subgraph Cloud["Firebase & Google Cloud Platform"]
+        Firestore["Cloud Firestore<br/>(Real-time Data)"]
+        Functions["Cloud Functions<br/>(Backend Logic)"]
+        Auth["Firebase Auth<br/>(Security)"]
+        FCM["Firebase Cloud Messaging<br/>(Alerts)"]
+        Storage["Cloud Storage<br/>(Images/Logs)"]
+        BigQuery["BigQuery<br/>(Historical Data)"]
+        VertexAI["Vertex AI<br/>(ML Models)"]
+        SecretManager["Secret Manager<br/>(Credentials)"]
     end
 
-    subgraph Frontend [User Interfaces]
-        WebApp[GreenOS Web App]
-        MobileApp[GreenOS Mobile App]
+    subgraph Frontend["User Interfaces"]
+        WebApp["Web Dashboard<br/>(React + Vite)"]
+        MobileApp["Mobile App<br/>(iOS/Android)"]
     end
 
-    UNO <--> Firestore
-    UNO <--> Functions
-    UNO <--> Storage
+    UNO <-->|WiFi/HTTPS| Firestore
+    UNO <-->|API Calls| Functions
+    UNO -->|Upload Logs| Storage
     
-    Firestore <--> WebApp
-    Firestore <--> MobileApp
-                           # Arduino UNO Q Edge Controller (✅ Complete)
+    Firestore <-->|Real-time Sync| WebApp
+    Firestore <-->|Real-time Sync| MobileApp
+    
+    Functions <-->|REST API| WebApp
+    Functions <-->|REST API| MobileApp
+    
+    Auth -.->|Authentication| WebApp
+    Auth -.->|Authentication| MobileApp
+    
+    FCM -.->|Push Alerts| WebApp
+    FCM -.->|Push Alerts| MobileApp
+    
+    Firestore -->|Data Export| BigQuery
+    BigQuery -->|Training Data| VertexAI
+    SecretManager -.->|API Keys| Functions
+    Functions -->|Trigger Alerts| FCM
+```
+
+### 📂 Project Structure
+
+```txt
+/GreenOS
+├── /Firmware                        # Arduino UNO Q Edge Controller (✅ Complete)
 │   ├── /src
 │   │   ├── main.cpp                 # FSM-based main controller with WDT and offline buffering
 │   │   ├── config.h                 # Hardware configuration, pin mappings, thresholds
