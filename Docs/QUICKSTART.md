@@ -51,7 +51,7 @@ Open **Tools → Manage Libraries** and install these one-by-one:
 
 ## ⚙️ Step 3: Configure WiFi & Firebase (5 minutes)
 
-1. Open `d:\GreenOS\Firmware\src\config.h` in Arduino IDE
+1. Open `d:\GreenOS\Firmware\src\main\config.h` in Arduino IDE (or in any text editor)
 2. Update these lines with **YOUR** credentials:
 
 ```cpp
@@ -72,7 +72,7 @@ Open **Tools → Manage Libraries** and install these one-by-one:
 
 1. Connect Arduino UNO Q via USB-C
 2. In Arduino IDE:
-   - **File → Open** → Navigate to `d:\GreenOS\Firmware\src\main.ino`
+   - **File → Open** → Navigate to `d:\GreenOS\Firmware\src\main\main.ino`
 3. Select correct port:
    - **Tools → Port** → Select the COM port with "UNO R4"
 4. Click **Upload** button (→ icon)
@@ -93,8 +93,9 @@ Open **Tools → Manage Libraries** and install these one-by-one:
 ║   Arduino UNO Q Firmware v1.0          ║
 ╚════════════════════════════════════════╝
 
-Initializing Hardware Watchdog Timer...
-✓ Watchdog enabled (8 second timeout)
+Initializing Software Watchdog Timer...
+✓ Software watchdog enabled (8 second timeout)
+ℹ️  For production deployment, enable Renesas IWDT hardware watchdog
 Initializing SD card... ✗ SD card initialization failed
 ⚠️ Offline buffering disabled
 

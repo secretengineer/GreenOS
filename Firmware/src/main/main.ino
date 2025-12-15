@@ -14,7 +14,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <SD.h>
-#include <esp_task_wdt.h>
 #include "config.h"
 #include "sensor_manager.h"
 #include "actuator_manager.h"
@@ -105,6 +104,9 @@ void setup() {
 void loop() {
   // Pet the watchdog to prevent reset
   feedWatchdog();
+  
+  // Check watchdog timeout (software implementation)
+  checkWatchdog();
   
   // Execute current state
   switch (currentState) {
@@ -454,23 +456,50 @@ void stateCalibrationMode() {
 // WATCHDOG TIMER FUNCTIONS
 // ============================================================================
 
+// Software watchdog variables
+unsigned long lastWatchdogFeed = 0;
+bool watchdogEnabled = false;
+
 void setupWatchdog() {
   #if WDT_ENABLED
-  Serial.println("Initializing Hardware Watchdog Timer...");
+  Serial.println("Initializing Software Watchdog Timer...");
   
-  // Configure ESP32 watchdog (8 second timeout)
-  esp_task_wdt_init(WDT_TIMEOUT_SECONDS, true);  // Enable panic on timeout
-  esp_task_wdt_add(NULL);  // Add current task
+  // Initialize software watchdog
+  // Note: For production, consider enabling the Renesas IWDT hardware watchdog
+  // This is a simplified software implementation for initial testing
+  lastWatchdogFeed = millis();
+  watchdogEnabled = true;
   
-  Serial.printf("✓ Watchdog enabled (%d second timeout)\n", WDT_TIMEOUT_SECONDS);
+  Serial.printf("✓ Software watchdog enabled (%d second timeout)\n", WDT_TIMEOUT_SECONDS);
+  Serial.println("ℹ️  For production deployment, enable Renesas IWDT hardware watchdog");
   #else
   Serial.println("⚠️ Watchdog disabled (not recommended for production)");
+  watchdogEnabled = false;
   #endif
 }
 
 void feedWatchdog() {
   #if WDT_ENABLED
-  esp_task_wdt_reset();
+  if (watchdogEnabled) {
+    lastWatchdogFeed = millis();
+  }
+  #endif
+}
+
+void checkWatchdog() {
+  #if WDT_ENABLED
+  if (watchdogEnabled) {
+    unsigned long timeSinceLastFeed = millis() - lastWatchdogFeed;
+    if (timeSinceLastFeed > (WDT_TIMEOUT_SECONDS * 1000UL)) {
+      Serial.println("\n\n⚠️⚠️⚠️ WATCHDOG TIMEOUT ⚠️⚠️⚠️");
+      Serial.printf("Time since last feed: %lu ms\n", timeSinceLastFeed);
+      Serial.println("System appears to be hung. Initiating software reset...\n");
+      delay(1000);
+      
+      // Perform software reset
+      NVIC_SystemReset();
+    }
+  }
   #endif
 }
 

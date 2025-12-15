@@ -8,7 +8,7 @@
  #include "firebase_comm.h"
  #include "config.h"
  #include <ArduinoJson.h>
- #include <WiFiClientSecure.h>
+ #include <WiFi.h>
  #include <Firebase_ESP_Client.h>
  
  // Firebase App and Auth objects
@@ -16,8 +16,8 @@
  FirebaseAuth auth;
  FirebaseConfig config;
  
- // Use a secure WiFi client for HTTPS requests
- WiFiClientSecure client;
+ // WiFi client for HTTPS requests
+ WiFiClient client;
  
  // Define the Cloud Function URL.
  // IMPORTANT: Replace <YOUR_REGION> and <YOUR_PROJECT_ID> with your Firebase project details.
@@ -37,9 +37,8 @@
  void FirebaseComm::init() {
    Serial.println("Initializing Firebase...");
  
-   // Trust the root CA certificate for the Firebase Cloud Function endpoint
-   // (Let's Encrypt - ISRG Root X1)
-   client.setInsecure(); // For development only. For production, use client.setCACert().
+   // Note: WiFiClient on Arduino UNO R4 handles SSL/TLS automatically when connecting to HTTPS
+   // No need to call setInsecure() or setCACert() with the standard WiFi library
  
    // Configure Firebase
    config.api_key = API_KEY;
