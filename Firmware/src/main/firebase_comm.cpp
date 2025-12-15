@@ -12,8 +12,7 @@
  #include "firebase_comm.h"
  #include "config.h"
  #include <ArduinoJson.h>
- #include <WiFi.h>
- // Note: Firebase integration stubbed out - no WiFiClient needed
+ // Note: WiFi disabled due to BSP incompatibility on Arduino UNO Q
  
  FirebaseComm::FirebaseComm() {
    this->connected = false;

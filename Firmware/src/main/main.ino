@@ -12,9 +12,8 @@
  */
 
 #include <Arduino.h>
-#include <WiFi.h>
-// Note: SD library not compatible with Arduino UNO Q Zephyr architecture
-// Offline buffering disabled for initial testing
+// Note: WiFi library has BSP incompatibility on Arduino UNO Q Zephyr 0.52.0
+// System will operate in local mode (Serial Monitor only) for initial testing
 #include "config.h"
 #include "sensor_manager.h"
 #include "actuator_manager.h"
@@ -266,10 +265,8 @@ void stateNormalOperation() {
       sensors.printReadings();
     }
     
-    // If offline, buffer data locally
-    if (WiFi.status() != WL_CONNECTED || !firebase.isConnected()) {
-      bufferSensorData(sensors.getData());
-    }
+    // If offline, buffer data locally (WiFi disabled, always buffer)
+    bufferSensorData(sensors.getData());
   }
   
   // Check for anomalies
@@ -300,26 +297,10 @@ void stateNormalOperation() {
     }
   }
   
-  // Sync with Firebase periodically
+  // Sync with Firebase periodically (disabled - no WiFi)
   if (currentMillis - lastFirebaseSync >= FIREBASE_SYNC_INTERVAL) {
     lastFirebaseSync = currentMillis;
-    
-    if (WiFi.status() == WL_CONNECTED) {
-      if (firebase.isConnected()) {
-        firebase.syncSensorData(sensors.getData());
-        firebase.checkForCommands(actuators);
-      } else {
-        // Try to reconnect
-        Serial.println("Firebase disconnected, attempting to reconnect...");
-        changeState(STATE_FIREBASE_AUTH);
-        return;
-      }
-    } else {
-      // WiFi disconnected, try to reconnect
-      Serial.println("WiFi disconnected, attempting to reconnect...");
-      WiFi.disconnect();
-      WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    }
+    // WiFi disabled - skip Firebase sync
   }
   
   // Handle real-time Firebase updates
