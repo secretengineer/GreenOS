@@ -515,21 +515,9 @@ void checkWatchdog() {
 // ============================================================================
 
 void initializeSDCard() {
-  Serial.print("Initializing SD card... ");
-  
-  if (SD.begin(SD_CS_PIN)) {
-    Serial.println("✓ SD card initialized");
-    sdCardAvailable = true;
-    
-    // Create data directory if it doesn't exist
-    if (!SD.exists("/data")) {
-      SD.mkdir("/data");
-    }
-  } else {
-    Serial.println("✗ SD card initialization failed");
-    Serial.println("⚠️ Offline buffering disabled");
-    sdCardAvailable = false;
-  }
+  // STUB: SD library not compatible with Zephyr architecture
+  Serial.println("SD card not available (Zephyr incompatibility)");
+  sdCardAvailable = false;
 }
 
 void bufferSensorData(SensorData data) {
@@ -555,77 +543,26 @@ void bufferSensorData(SensorData data) {
 }
 
 void flushSDBuffer() {
-  if (!sdCardAvailable || bufferCount == 0) {
-    return;
-  }
+  // STUB: SD card not available on Zephyr
+  if (bufferCount == 0) return;
   
-  File dataFile = SD.open("/data/buffer.csv", FILE_WRITE);
-  if (dataFile) {
-    for (int i = 0; i < bufferCount; i++) {
-      dataFile.print(offlineBuffer[i].timestamp);
-      dataFile.print(",");
-      dataFile.print(offlineBuffer[i].airTemp, 1);
-      dataFile.print(",");
-      dataFile.print(offlineBuffer[i].airHumidity, 1);
-      dataFile.print(",");
-      dataFile.print(offlineBuffer[i].co2, 0);
-      dataFile.print(",");
-      dataFile.print(offlineBuffer[i].ph, 2);
-      dataFile.print(",");
-      dataFile.print(offlineBuffer[i].ec, 2);
-      dataFile.print(",");
-      dataFile.println(offlineBuffer[i].vwc, 1);
-    }
-    dataFile.close();
-    Serial.print("✓ Flushed ");
-    Serial.print(bufferCount);
-    Serial.println(" readings to SD card");
-    bufferCount = 0;
-  } else {
-    Serial.println("✗ Failed to open SD card buffer file");
-  }
+  Serial.print("⚠️  Cannot flush ");
+  Serial.print(bufferCount);
+  Serial.println(" readings - SD card not available");
+  
+  // Clear buffer to prevent overflow
+  bufferCount = 0;
 }
 
 void syncBufferedData() {
-  if (!sdCardAvailable) {
-    return;
-  }
-  
-  File dataFile = SD.open("/data/buffer.csv");
-  if (dataFile) {
-    Serial.println("Syncing buffered data to Firebase...");
-    int lineCount = 0;
-    
-    while (dataFile.available()) {
-      String line = dataFile.readStringUntil('\n');
-      // Parse CSV and send to Firebase
-      // TODO: Implement Firebase batch upload
-      lineCount++;
-      feedWatchdog();
-    }
-    
-    dataFile.close();
-    
-    // Delete buffer file after successful sync
-    SD.remove("/data/buffer.csv");
-    Serial.print("✓ Synced ");
-    Serial.print(lineCount);
-    Serial.println(" buffered readings");
-  }
+  // STUB: SD card not available on Zephyr
+  Serial.println("⚠️  Cannot sync buffered data - SD card not available");
 }
 
 void saveAlertToSD(String alertDetails) {
-  if (!sdCardAvailable) {
-    return;
-  }
-  
-  File alertFile = SD.open("/data/alerts.log", FILE_WRITE);
-  if (alertFile) {
-    alertFile.print(millis());
-    alertFile.print(",");
-    alertFile.println(alertDetails);
-    alertFile.close();
-  }
+  // STUB: SD card not available - log to Serial only
+  Serial.print("🚨 ALERT (Serial only): ");
+  Serial.println(alertDetails);
 }
 
 // ============================================================================
