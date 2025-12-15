@@ -161,20 +161,11 @@ graph TD
 - ✅ **Firmware**: Production-ready with all sensors integrated
 - 🔨 **Cloud Functions**: Partial implementation, Firebase integration active
 - 📋 **Web UI**: Structure in place, components being developed
-- 📚 **Documentation**: Comprehensive guides complete ├── /public
-│   │   ├── index.html               (Main application file)
-│   │   └── firebase-messaging-sw.js (Service worker for FCM notifications) 
-│   ├── /src
-│   │   ├── /components              (Reusable UI elements: Gauges, Charts, Video feeds)
-│   │   ├── /pages                   (Views: Dashboard, Login, Settings, Audit Log)
-│   │   ├── app.js/ts                (Application initialization and routing)
-│   │   └── style.css                (San serif fonts, responsive layout)
-│   └── firebase.json                (Firebase Hosting configuration)
-|
-├── /MobileApp (Mobile Application - e.g., Flutter or React Native)
-│   ├── /android
-│   ├── /ios
-│   └── /lib                         (Cross-platform code using Firebase SDKs)
+- 📚 **Documentation**: Comprehensive guides complete
+
+---
+
+### 1. Arduino UNO Q (Edge Device)
 
 The **Arduino UNO Q** serves as the intelligent edge controller, providing real-time environmental management with industrial-grade reliability. Built on the Renesas RA4M1 microcontroller (ARM Cortex-M4 @ 48MHz) with ESP32-S3 WiFi coprocessor, it combines processing power with robust connectivity.
 
