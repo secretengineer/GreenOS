@@ -72,7 +72,7 @@ Open **Tools → Manage Libraries** and install these one-by-one:
 
 1. Connect Arduino UNO Q via USB-C
 2. In Arduino IDE:
-   - **File → Open** → Navigate to `d:\GreenOS\Firmware\src\main.cpp`
+   - **File → Open** → Navigate to `d:\GreenOS\Firmware\src\main.ino`
 3. Select correct port:
    - **Tools → Port** → Select the COM port with "UNO R4"
 4. Click **Upload** button (→ icon)
