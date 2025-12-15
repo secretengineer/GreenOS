@@ -43,28 +43,27 @@ Open **Tools → Manage Libraries** and install these one-by-one:
    - Will auto-install dependencies (Adafruit BusIO)
 2. Search **"ModbusMaster"** → Install latest
 3. Search **"ArduinoJson"** → Install v6.21.3 (or latest v6.x, **NOT v7**)
-4. Search **"Firebase ESP Client"** → Install latest
+
+**Note**: Firebase integration is currently stubbed out for initial testing. The system will operate in offline mode with local data logging only.
 
 **Verification**: Go to **Sketch → Include Library** and confirm all are listed.
 
 ---
 
-## ⚙️ Step 3: Configure WiFi & Firebase (5 minutes)
+## ⚙️ Step 3: Configure WiFi (5 minutes)
 
 1. Open `d:\GreenOS\Firmware\src\main\config.h` in Arduino IDE (or in any text editor)
-2. Update these lines with **YOUR** credentials:
+2. Update WiFi credentials with **YOUR** network details:
 
 ```cpp
 // Line 15-16: Update WiFi
 #define WIFI_SSID "YOUR_WIFI_NAME"
 #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
-
-// Line 19-20: Update Firebase (if you have different credentials)
-#define FIREBASE_HOST "greenos-24311.firebaseapp.com"
-#define API_KEY "AIzaSyAXSxzpXr0tkEgRdO8dJzufYec9yfu3cQI"
 ```
 
 3. **Save** the file
+
+**Note**: Firebase configuration is optional for initial testing. The system will work without cloud connectivity.
 
 ---
 

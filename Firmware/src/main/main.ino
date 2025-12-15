@@ -13,7 +13,8 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <SD.h>
+// Note: SD library not compatible with Arduino UNO Q Zephyr architecture
+// Offline buffering disabled for initial testing
 #include "config.h"
 #include "sensor_manager.h"
 #include "actuator_manager.h"
@@ -90,8 +91,9 @@ void setup() {
   // Initialize hardware watchdog timer
   setupWatchdog();
   
-  // Initialize SD card for offline buffering
-  initializeSDCard();
+  // SD card not available on Zephyr - skip initialization
+  Serial.println("⚠️  SD card buffering disabled (Zephyr incompatibility)");
+  sdCardAvailable = false;
   
   // Set initial state
   changeState(STATE_SENSOR_INIT);
@@ -192,7 +194,6 @@ void stateNetworkConnect() {
   Serial.println("\n[STATE] Connecting to Network...");
   
   // Connect to WiFi
-  WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   
   unsigned long startTime = millis();
@@ -316,7 +317,8 @@ void stateNormalOperation() {
     } else {
       // WiFi disconnected, try to reconnect
       Serial.println("WiFi disconnected, attempting to reconnect...");
-      WiFi.reconnect();
+      WiFi.disconnect();
+      WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     }
   }
   
@@ -393,10 +395,11 @@ void stateEmergency() {
   Serial.println("╚════════════════════════════════════════╝");
   
   AnomalyType type = anomaly.getAnomalyType();
-  Serial.printf("Emergency type: %d\n", type);
+  Serial.print("Emergency type: ");
+  Serial.println(type);
   
-  // Execute emergency protocols
-  actuators.handleEmergency(type);
+  // Execute emergency protocols (cast to EmergencyType)
+  actuators.handleEmergency((EmergencyType)type);
   
   // Send urgent alert
   if (firebase.isConnected()) {
@@ -470,7 +473,9 @@ void setupWatchdog() {
   lastWatchdogFeed = millis();
   watchdogEnabled = true;
   
-  Serial.printf("✓ Software watchdog enabled (%d second timeout)\n", WDT_TIMEOUT_SECONDS);
+  Serial.print("✓ Software watchdog enabled (");
+  Serial.print(WDT_TIMEOUT_SECONDS);
+  Serial.println(" second timeout)");
   Serial.println("ℹ️  For production deployment, enable Renesas IWDT hardware watchdog");
   #else
   Serial.println("⚠️ Watchdog disabled (not recommended for production)");
@@ -492,7 +497,9 @@ void checkWatchdog() {
     unsigned long timeSinceLastFeed = millis() - lastWatchdogFeed;
     if (timeSinceLastFeed > (WDT_TIMEOUT_SECONDS * 1000UL)) {
       Serial.println("\n\n⚠️⚠️⚠️ WATCHDOG TIMEOUT ⚠️⚠️⚠️");
-      Serial.printf("Time since last feed: %lu ms\n", timeSinceLastFeed);
+      Serial.print("Time since last feed: ");
+      Serial.print(timeSinceLastFeed);
+      Serial.println(" ms");
       Serial.println("System appears to be hung. Initiating software reset...\n");
       delay(1000);
       
@@ -552,20 +559,27 @@ void flushSDBuffer() {
     return;
   }
   
-  File dataFile = SD.open("/data/buffer.csv", FILE_APPEND);
+  File dataFile = SD.open("/data/buffer.csv", FILE_WRITE);
   if (dataFile) {
     for (int i = 0; i < bufferCount; i++) {
-      dataFile.printf("%lu,%.1f,%.1f,%.0f,%.2f,%.2f,%.1f\n",
-                     offlineBuffer[i].timestamp,
-                     offlineBuffer[i].airTemp,
-                     offlineBuffer[i].airHumidity,
-                     offlineBuffer[i].co2,
-                     offlineBuffer[i].ph,
-                     offlineBuffer[i].ec,
-                     offlineBuffer[i].vwc);
+      dataFile.print(offlineBuffer[i].timestamp);
+      dataFile.print(",");
+      dataFile.print(offlineBuffer[i].airTemp, 1);
+      dataFile.print(",");
+      dataFile.print(offlineBuffer[i].airHumidity, 1);
+      dataFile.print(",");
+      dataFile.print(offlineBuffer[i].co2, 0);
+      dataFile.print(",");
+      dataFile.print(offlineBuffer[i].ph, 2);
+      dataFile.print(",");
+      dataFile.print(offlineBuffer[i].ec, 2);
+      dataFile.print(",");
+      dataFile.println(offlineBuffer[i].vwc, 1);
     }
     dataFile.close();
-    Serial.printf("✓ Flushed %d readings to SD card\n", bufferCount);
+    Serial.print("✓ Flushed ");
+    Serial.print(bufferCount);
+    Serial.println(" readings to SD card");
     bufferCount = 0;
   } else {
     Serial.println("✗ Failed to open SD card buffer file");
@@ -594,7 +608,9 @@ void syncBufferedData() {
     
     // Delete buffer file after successful sync
     SD.remove("/data/buffer.csv");
-    Serial.printf("✓ Synced %d buffered readings\n", lineCount);
+    Serial.print("✓ Synced ");
+    Serial.print(lineCount);
+    Serial.println(" buffered readings");
   }
 }
 
@@ -603,9 +619,11 @@ void saveAlertToSD(String alertDetails) {
     return;
   }
   
-  File alertFile = SD.open("/data/alerts.log", FILE_APPEND);
+  File alertFile = SD.open("/data/alerts.log", FILE_WRITE);
   if (alertFile) {
-    alertFile.printf("%lu,%s\n", millis(), alertDetails.c_str());
+    alertFile.print(millis());
+    alertFile.print(",");
+    alertFile.println(alertDetails);
     alertFile.close();
   }
 }
@@ -619,7 +637,10 @@ void changeState(SystemState newState) {
   currentState = newState;
   stateEntryTime = millis();
   
-  Serial.printf("\n>>> STATE CHANGE: %d → %d\n", previousState, newState);
+  Serial.print("\n>>> STATE CHANGE: ");
+  Serial.print(previousState);
+  Serial.print(" → ");
+  Serial.println(newState);
 }
 
 void blinkStatusLED(int count, int delayMs) {
@@ -638,19 +659,8 @@ void periodicMemoryCheck() {
   if (currentMillis - lastCheck >= MEMORY_CHECK_INTERVAL) {
     lastCheck = currentMillis;
     
-    uint32_t freeHeap = ESP.getFreeHeap();
-    uint32_t minFreeHeap = ESP.getMinFreeHeap();
-    
-    if (freeHeap < MIN_FREE_HEAP_BYTES) {
-      Serial.println("\n⚠️ WARNING: Low memory detected!");
-      Serial.printf("Free Heap: %d bytes (Min: %d bytes)\n", freeHeap, minFreeHeap);
-      
-      // Take corrective action
-      if (freeHeap < MIN_FREE_HEAP_BYTES / 2) {
-        Serial.println("Critical memory shortage - entering safe mode");
-        changeState(STATE_SAFE_MODE);
-      }
-    }
+    // Note: ESP.getFreeHeap() not available on Zephyr - memory check disabled
+    // For production, implement Zephyr-specific memory monitoring if needed
   }
 }
 
@@ -670,7 +680,9 @@ void checkSensorHealth() {
   
   if (health.mq135Valid && !health.mq135Preheated) {
     unsigned long remaining = MQ135_PREHEAT_TIME_MS - (millis() - 0);
-    Serial.printf("ℹ MQ135 preheating: %lu hours remaining\n", remaining / 3600000);
+    Serial.print("ℹ MQ135 preheating: ");
+    Serial.print(remaining / 3600000);
+    Serial.println(" hours remaining");
   }
   
   // If critical sensor failed, consider safe mode
@@ -697,23 +709,34 @@ void handleSerialCommands() {
         break;
         
       case 'h':
-      case 'H':
+      case 'H': {
         SensorHealthReport health = sensors.getHealthReport();
         Serial.println("\n=== Sensor Health Report ===");
-        Serial.printf("SCD-30:  %s (Error: %.1f%%)\n", 
-                     health.scd30Valid ? "OK" : "FAIL", health.scd30ErrorRate);
-        Serial.printf("MQ135:   %s (Error: %.1f%%, Preheated: %s)\n",
-                     health.mq135Valid ? "OK" : "FAIL", health.mq135ErrorRate,
-                     health.mq135Preheated ? "Yes" : "No");
-        Serial.printf("Modbus:  %s (Error: %.1f%%)\n",
-                     health.modbusValid ? "OK" : "FAIL", health.modbusErrorRate);
+        Serial.print("SCD-30:  ");
+        Serial.print(health.scd30Valid ? "OK" : "FAIL");
+        Serial.print(" (Error: ");
+        Serial.print(health.scd30ErrorRate, 1);
+        Serial.println("%)");
+        Serial.print("MQ135:   ");
+        Serial.print(health.mq135Valid ? "OK" : "FAIL");
+        Serial.print(" (Error: ");
+        Serial.print(health.mq135ErrorRate, 1);
+        Serial.print("%, Preheated: ");
+        Serial.print(health.mq135Preheated ? "Yes" : "No");
+        Serial.println(")");
+        Serial.print("Modbus:  ");
+        Serial.print(health.modbusValid ? "OK" : "FAIL");
+        Serial.print(" (Error: ");
+        Serial.print(health.modbusErrorRate, 1);
+        Serial.println("%)");
         Serial.println();
         break;
+      }
         
       case 'r':
       case 'R':
         Serial.println("Resetting system...");
-        ESP.restart();
+        NVIC_SystemReset();
         break;
     }
     

@@ -18,7 +18,7 @@
 #include <Adafruit_SCD30.h>
 #include <ModbusMaster.h>
 #include <Wire.h>
-#include <EEPROM.h>
+// Note: EEPROM not available on UNO R4 - calibration stored in RAM (resets on reboot)
 
 // ============================================================================
 // GLOBAL SENSOR OBJECTS
@@ -96,7 +96,7 @@ void SensorManager::init() {
   loadADCCalibration();
   
   // Initialize I2C bus
-  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+  Wire.begin();
   Wire.setClock(100000);  // 100kHz I2C speed
   
   // Initialize SCD-30 CO2 sensor
@@ -109,7 +109,9 @@ void SensorManager::init() {
     // Set altitude compensation for Denver (5280 ft = 1609 m)
     if (SCD30_ALTITUDE_COMPENSATION) {
       scd30.setAltitudeOffset(GREENHOUSE_ALTITUDE_M);
-      Serial.printf("  Altitude compensation: %d meters\n", GREENHOUSE_ALTITUDE_M);
+      Serial.print("  Altitude compensation: ");
+      Serial.print(GREENHOUSE_ALTITUDE_M);
+      Serial.println(" meters");
     }
     
     // Set temperature offset if needed
@@ -152,7 +154,9 @@ void SensorManager::init() {
   
   // Start MQ135 preheat timer
   mq135_startTime = millis();
-  Serial.printf("⏱ MQ135 preheating (requires %d hours)...\n", MQ135_PREHEAT_TIME_MS / 3600000);
+  Serial.print("⏱ MQ135 preheating (requires ");
+  Serial.print(MQ135_PREHEAT_TIME_MS / 3600000);
+  Serial.println(" hours)...");
   
   // Initialize digital sensors
   pinMode(PIR_SENSOR_PIN, INPUT);
@@ -354,7 +358,8 @@ void SensorManager::readModbusSensor() {
   
   if (modbusHealth.consecutiveErrors > MAX_SENSOR_ERRORS) {
     modbusHealth.isValid = false;
-    Serial.printf("⚠️ Modbus sensor failed! Error code: 0x%02X\n", result);
+    Serial.print("⚠️ Modbus sensor failed! Error code: 0x");
+    Serial.println(result, HEX);
   }
   
   // Keep last known good values (already in data structure)
@@ -365,28 +370,19 @@ void SensorManager::readModbusSensor() {
 // ============================================================================
 
 void SensorManager::loadADCCalibration() {
-  EEPROM.get(EEPROM_ADC_CAL_ADDR, adcCal);
-  
-  // Verify CRC32
-  uint32_t calculatedCRC = calculateCRC32((uint8_t*)&adcCal, sizeof(ADCCalibration) - sizeof(uint32_t));
-  
-  if (adcCal.crc32 != calculatedCRC) {
-    Serial.println("⚠️ ADC calibration invalid or not found, using defaults");
-    adcCal.offset = 0.0f;
-    adcCal.scale = 1.0f;
-    adcCal.vRef = ADC_VREF_NOMINAL;
-    adcCal.tempCoeff = 0.0002f;
-  } else {
-    Serial.println("✓ ADC calibration loaded from EEPROM");
-    Serial.printf("  Offset: %.4f V, Scale: %.4f, Vref: %.4f V\n", 
-                  adcCal.offset, adcCal.scale, adcCal.vRef);
-  }
+  // STUB: EEPROM not available - using default calibration values
+  Serial.println("⚠️  ADC calibration using defaults (EEPROM not available)");
+  adcCal.offset = 0.0f;
+  adcCal.scale = 1.0f;
+  adcCal.vRef = ADC_VREF_NOMINAL;
+  adcCal.tempCoeff = 0.0002f;
+  adcCal.crc32 = 0;
 }
 
 void SensorManager::saveADCCalibration() {
+  // STUB: EEPROM not available - calibration stored in RAM only (lost on reboot)
   adcCal.crc32 = calculateCRC32((uint8_t*)&adcCal, sizeof(ADCCalibration) - sizeof(uint32_t));
-  EEPROM.put(EEPROM_ADC_CAL_ADDR, adcCal);
-  Serial.println("✓ ADC calibration saved to EEPROM");
+  Serial.println("ℹ️  ADC calibration saved to RAM (will be lost on reboot)");
 }
 
 float SensorManager::readCalibratedADC(int pin) {
@@ -473,7 +469,11 @@ void SensorManager::performADCCalibration() {
   }
   float zeroRaw = zeroSum / (float)ADC_SAMPLES;
   adcCal.offset = (zeroRaw / ADC_MAX_VALUE) * ADC_VREF_NOMINAL;
-  Serial.printf("Zero offset: %.4f V (Raw: %.1f)\n", adcCal.offset, zeroRaw);
+  Serial.print("Zero offset: ");
+  Serial.print(adcCal.offset, 4);
+  Serial.print(" V (Raw: ");
+  Serial.print(zeroRaw, 1);
+  Serial.println(")");
   
   // Step 2: Reference point calibration
   Serial.println("\nStep 2: REFERENCE CALIBRATION");
@@ -492,15 +492,22 @@ void SensorManager::performADCCalibration() {
   float refRaw = refSum / (float)ADC_SAMPLES;
   float measuredVoltage = (refRaw / ADC_MAX_VALUE) * ADC_VREF_NOMINAL;
   adcCal.scale = refVoltage / (measuredVoltage - adcCal.offset);
-  Serial.printf("Scale factor: %.4f (Measured: %.4f V, Target: %.4f V)\n", 
-                adcCal.scale, measuredVoltage, refVoltage);
+  Serial.print("Scale factor: ");
+  Serial.print(adcCal.scale, 4);
+  Serial.print(" (Measured: ");
+  Serial.print(measuredVoltage, 4);
+  Serial.print(" V, Target: ");
+  Serial.print(refVoltage, 4);
+  Serial.println(" V)");
   
   // Step 3: Measure actual Vref
   Serial.println("\nStep 3: VREF MEASUREMENT");
   Serial.println("Measuring internal voltage reference...");
   // Note: This would use internal reference if available
   adcCal.vRef = ADC_VREF_NOMINAL;  // Placeholder
-  Serial.printf("Vref: %.4f V\n", adcCal.vRef);
+  Serial.print("Vref: ");
+  Serial.print(adcCal.vRef, 4);
+  Serial.println(" V");
   
   // Save calibration
   saveADCCalibration();
@@ -524,11 +531,15 @@ void SensorManager::calibrateMQ135() {
   // R0 = Rs / clean_air_ratio
   mq135_R0 = Rs / MQ135_CLEAN_AIR_RATIO;
   
-  Serial.printf("✓ MQ135 R0 calibrated: %.2f Ω\n", mq135_R0);
-  Serial.printf("  Sensor resistance in clean air: %.2f Ω\n", Rs);
+  Serial.print("✓ MQ135 R0 calibrated: ");
+  Serial.print(mq135_R0, 2);
+  Serial.println(" Ω");
+  Serial.print("  Sensor resistance in clean air: ");
+  Serial.print(Rs, 2);
+  Serial.println(" Ω");
   
-  // Save to EEPROM
-  EEPROM.put(EEPROM_SENSOR_CAL_ADDR, mq135_R0);
+  // STUB: Save to RAM only (no EEPROM available)
+  Serial.println("ℹ️  Calibration saved to RAM (will be lost on reboot)");
   
   Serial.println("=== CALIBRATION MODE END ===\n");
 }
@@ -543,23 +554,47 @@ SensorData SensorManager::getData() {
 
 void SensorManager::printReadings() {
   Serial.println("--- Environmental ---");
-  Serial.printf("Air Temp:     %.1f °C\n", data.airTemp);
-  Serial.printf("Air Humidity: %.1f %%\n", data.airHumidity);
-  Serial.printf("CO2:          %.0f ppm\n", data.co2);
-  Serial.printf("Air Quality:  %.0f ppm\n", data.airQualityPPM);
+  Serial.print("Air Temp:     ");
+  Serial.print(data.airTemp, 1);
+  Serial.println(" °C");
+  Serial.print("Air Humidity: ");
+  Serial.print(data.airHumidity, 1);
+  Serial.println(" %");
+  Serial.print("CO2:          ");
+  Serial.print(data.co2, 0);
+  Serial.println(" ppm");
+  Serial.print("Air Quality:  ");
+  Serial.print(data.airQualityPPM, 0);
+  Serial.println(" ppm");
   
   Serial.println("--- Soil ---");
-  Serial.printf("Soil Temp:    %.1f °C\n", data.substrateTemp);
-  Serial.printf("Moisture:     %.1f %%\n", data.vwc);
-  Serial.printf("pH:           %.2f\n", data.ph);
-  Serial.printf("EC:           %.2f mS/cm\n", data.ec);
-  Serial.printf("N-P-K:        %.0f-%.0f-%.0f mg/kg\n", 
-                data.nitrogen, data.phosphorus, data.potassium);
+  Serial.print("Soil Temp:    ");
+  Serial.print(data.substrateTemp, 1);
+  Serial.println(" °C");
+  Serial.print("Moisture:     ");
+  Serial.print(data.vwc, 1);
+  Serial.println(" %");
+  Serial.print("pH:           ");
+  Serial.println(data.ph, 2);
+  Serial.print("EC:           ");
+  Serial.print(data.ec, 2);
+  Serial.println(" mS/cm");
+  Serial.print("N-P-K:        ");
+  Serial.print(data.nitrogen, 0);
+  Serial.print("-");
+  Serial.print(data.phosphorus, 0);
+  Serial.print("-");
+  Serial.print(data.potassium, 0);
+  Serial.println(" mg/kg");
   
   Serial.println("--- Status ---");
-  Serial.printf("Motion:       %s\n", data.motionDetected ? "YES" : "NO");
-  Serial.printf("UPS Active:   %s\n", data.upsActive ? "YES" : "NO");
-  Serial.printf("Timestamp:    %lu ms\n", data.timestamp);
+  Serial.print("Motion:       ");
+  Serial.println(data.motionDetected ? "YES" : "NO");
+  Serial.print("UPS Active:   ");
+  Serial.println(data.upsActive ? "YES" : "NO");
+  Serial.print("Timestamp:    ");
+  Serial.print(data.timestamp);
+  Serial.println(" ms");
   Serial.println();
 }
 

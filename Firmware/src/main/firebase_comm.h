@@ -8,7 +8,6 @@
 #define FIREBASE_COMM_H
 
 #include <Arduino.h>
-#include <WiFi.h>
 #include "sensor_manager.h"
 #include "actuator_manager.h"
 

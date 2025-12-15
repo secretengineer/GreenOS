@@ -125,7 +125,10 @@ void ActuatorManager::setHeater(bool primary, bool turnOn) {
       state.heaterOnTime = now;
     }
     
-    Serial.printf("✓ Heater %s: %s\n", primary ? "Primary" : "Secondary", turnOn ? "ON" : "OFF");
+    Serial.print("✓ Heater ");
+    Serial.print(primary ? "Primary" : "Secondary");
+    Serial.print(": ");
+    Serial.println(turnOn ? "ON" : "OFF");
   }
 }
 
@@ -158,7 +161,10 @@ void ActuatorManager::setFan(bool exhaust, bool turnOn) {
       state.fanOnTime = now;
     }
     
-    Serial.printf("✓ Fan %s: %s\n", exhaust ? "Exhaust" : "Circulation", turnOn ? "ON" : "OFF");
+    Serial.print("✓ Fan ");
+    Serial.print(exhaust ? "Exhaust" : "Circulation");
+    Serial.print(": ");
+    Serial.println(turnOn ? "ON" : "OFF");
   }
 }
 
@@ -189,7 +195,8 @@ void ActuatorManager::setPump(bool turnOn) {
       state.pumpOnTime = now;
     }
     
-    Serial.printf("✓ Irrigation Pump: %s\n", turnOn ? "ON" : "OFF");
+    Serial.print("✓ Irrigation Pump: ");
+    Serial.println(turnOn ? "ON" : "OFF");
   }
 }
 
@@ -197,7 +204,8 @@ void ActuatorManager::setLight(bool turnOn) {
   if (state.lightGrow != turnOn) {
     digitalWrite(LIGHT_GROW_PIN, turnOn ? HIGH : LOW);
     state.lightGrow = turnOn;
-    Serial.printf("✓ Grow Lights: %s\n", turnOn ? "ON" : "OFF");
+    Serial.print("✓ Grow Lights: ");
+    Serial.println(turnOn ? "ON" : "OFF");
   }
 }
 
@@ -308,7 +316,9 @@ void ActuatorManager::emergencyPowerFailure() {
 // ============================================================================
 
 void ActuatorManager::handleWarning(AnomalyType type) {
-  Serial.printf("⚠️ WARNING: Anomaly type %d - Adjusting controls\n", type);
+  Serial.print("⚠️ WARNING: Anomaly type ");
+  Serial.print(type);
+  Serial.println(" - Adjusting controls");
   
   switch (type) {
     case TEMP_TOO_LOW:
@@ -356,20 +366,30 @@ void ActuatorManager::stopAll() {
 
 void ActuatorManager::printStatus() {
   Serial.println("\n=== Actuator Status ===");
-  Serial.printf("Heater Primary:    %s\n", state.heaterPrimary ? "ON" : "OFF");
-  Serial.printf("Heater Secondary:  %s\n", state.heaterSecondary ? "ON" : "OFF");
-  Serial.printf("Fan Exhaust:       %s\n", state.fanExhaust ? "ON" : "OFF");
-  Serial.printf("Fan Circulation:   %s\n", state.fanCirculation ? "ON" : "OFF");
-  Serial.printf("Irrigation Pump:   %s\n", state.pumpIrrigation ? "ON" : "OFF");
-  Serial.printf("Grow Lights:       %s\n", state.lightGrow ? "ON" : "OFF");
+  Serial.print("Heater Primary:    ");
+  Serial.println(state.heaterPrimary ? "ON" : "OFF");
+  Serial.print("Heater Secondary:  ");
+  Serial.println(state.heaterSecondary ? "ON" : "OFF");
+  Serial.print("Fan Exhaust:       ");
+  Serial.println(state.fanExhaust ? "ON" : "OFF");
+  Serial.print("Fan Circulation:   ");
+  Serial.println(state.fanCirculation ? "ON" : "OFF");
+  Serial.print("Irrigation Pump:   ");
+  Serial.println(state.pumpIrrigation ? "ON" : "OFF");
+  Serial.print("Grow Lights:       ");
+  Serial.println(state.lightGrow ? "ON" : "OFF");
   
   // Show duty cycles
   unsigned long now = millis();
   if (state.heaterPrimary) {
-    Serial.printf("Heater run time:   %lu seconds\n", (now - state.heaterOnTime) / 1000);
+    Serial.print("Heater run time:   ");
+    Serial.print((now - state.heaterOnTime) / 1000);
+    Serial.println(" seconds");
   }
   if (state.pumpIrrigation) {
-    Serial.printf("Pump run time:     %lu seconds\n", (now - state.pumpOnTime) / 1000);
+    Serial.print("Pump run time:     ");
+    Serial.print((now - state.pumpOnTime) / 1000);
+    Serial.println(" seconds");
   }
   Serial.println();
 }
