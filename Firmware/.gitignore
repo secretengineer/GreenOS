@@ -1,0 +1,28 @@
+# PlatformIO build files
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+*.map
+
+# Config with credentials (use config_template.h as reference)
+include/config.h
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
