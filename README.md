@@ -2,12 +2,15 @@
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
-![Platform](https://img.shields.io/badge/platform-Arduino%20UNO%20Q%20%7C%20Firebase%20%7C%20GCP-blue)
-![Firmware](https://img.shields.io/badge/firmware-v1.0-brightgreen)
+![Platform](https://img.shields.io/badge/platform-ESP32--WROOM--32E%20%7C%20Firebase%20%7C%20GCP-blue)
+![Firmware](https://img.shields.io/badge/firmware-v2.0--dev-orange)
+
+> **📦 Looking for the Arduino UNO Q version?**  
+> The original Arduino UNO Q codebase is preserved in the [`v1.0-uno-q`](https://github.com/secretengineer/GreenOS/releases/tag/v1.0-uno-q) release and [`arduino-uno-q`](https://github.com/secretengineer/GreenOS/tree/arduino-uno-q) branch.
 
 ## 📖 Project Overview
 
-**GreenOS** is an open-source, production-ready intelligent greenhouse control system designed for precision environmental management. Built on the **Arduino UNO Q** (Renesas RA4M1 + ESP32-S3) platform and powered by **Firebase** and **Google Cloud Platform**, GreenOS delivers industrial-grade reliability with a focus on safe-fail operation, offline resilience, and real-time responsiveness.
+**GreenOS** is an open-source, production-ready intelligent greenhouse control system designed for precision environmental management. Built on the **ESP32-WROOM-32E** platform and powered by **Firebase** and **Google Cloud Platform**, GreenOS delivers industrial-grade reliability with a focus on safe-fail operation, offline resilience, and real-time responsiveness.
 
 This comprehensive system integrates advanced sensor fusion, predictive analytics, and automated climate control to create optimal growing conditions while maintaining robust safety protocols. Designed for the demanding environment of Denver, Colorado (elevation 5,280 ft), GreenOS adapts to your local conditions while providing professional-grade monitoring and control capabilities.
 
@@ -15,8 +18,8 @@ This comprehensive system integrates advanced sensor fusion, predictive analytic
 | :--- | :--- |
 | **Domain** | [`https://greenos.app`](https://greenos.app) |
 | **Greenhouse Spec** | 325 cu. ft. greenhouse in Denver, CO (5,280 ft elevation) |
-| **Platform** | Arduino UNO Q (Renesas RA4M1 Cortex-M4 @ 48MHz, ESP32-S3 WiFi) |
-| **Development Stage** | Hardware interface complete, cloud integration in progress |
+| **Platform** | ESP32-WROOM-32E (Dual-core Xtensa LX6 @ 240MHz, WiFi + Bluetooth) |
+| **Development Stage** | ESP32 migration in progress |
 | **Philosophy** | Safe-fail by design, data-driven decisions, offline-first operation, transparent monitoring |
 
 ---
@@ -29,13 +32,13 @@ Unlike consumer IoT devices that fail silently when connectivity drops, GreenOS 
 
 ## ✨ Key Features
 
-### **Edge Intelligence (Arduino UNO Q)**
+### **Edge Intelligence (ESP32-WROOM-32E)**
 *   **Multi-Sensor Fusion:** Integrates NDIR CO2 (SCD-30), air quality (MQ135), and Modbus RS485 soil sensors (EC, pH, moisture, NPK) with altitude compensation for Denver's elevation
-*   **Hardware Watchdog Timer:** 8-second timeout with automatic recovery prevents firmware hangs and ensures continuous operation
+*   **Hardware Watchdog Timer:** Automatic recovery prevents firmware hangs and ensures continuous operation
 *   **Finite State Machine:** Predictable system behavior through well-defined states (BOOT → SENSOR_INIT → NORMAL_OPERATION → EMERGENCY/SAFE_MODE)
 *   **Sensor Health Monitoring:** Real-time error rate tracking, validation, and fallback to last known good values
-*   **Offline Data Buffering:** SD card storage maintains complete operational history during network outages
-*   **ADC Calibration System:** Two-point calibration with temperature compensation ensures measurement accuracy
+*   **Offline Data Buffering:** SPIFFS/SD card storage maintains complete operational history during network outages
+*   **ADC Calibration System:** Multi-point calibration with temperature compensation ensures measurement accuracy
 
 ### **Automated Climate Control**
 *   **Safety Interlocks:** Prevents dangerous actuator combinations (e.g., simultaneous heating and exhaust ventilation)
