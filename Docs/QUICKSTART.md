@@ -1,12 +1,12 @@
 # GreenOS - Quick Start Guide
 
-## 🚀 Get Up and Running in 30 Minutes
+##  Get Up and Running in 30 Minutes
 
 This quick start guide gets your ESP32-WROOM-32E running with GreenOS firmware for initial testing.
 
 ---
 
-## ⚡ Prerequisites (5 minutes)
+##  Prerequisites (5 minutes)
 
 ### Hardware Ready
 - [ ] ESP32-WROOM-32E development board with USB cable
@@ -19,7 +19,7 @@ This quick start guide gets your ESP32-WROOM-32E running with GreenOS firmware f
 
 ---
 
-## 📦 Step 1: Install PlatformIO (5 minutes)
+##  Step 1: Install PlatformIO (5 minutes)
 
 1. Open **VS Code**
 2. Go to **Extensions** (Ctrl+Shift+X)
@@ -32,7 +32,7 @@ This quick start guide gets your ESP32-WROOM-32E running with GreenOS firmware f
 
 ---
 
-## 📚 Step 2: Install Libraries (Automatic!)
+##  Step 2: Install Libraries (Automatic!)
 
 PlatformIO automatically installs all dependencies when you build. No manual steps needed!
 
@@ -47,7 +47,7 @@ PlatformIO automatically installs all dependencies when you build. No manual ste
 
 ---
 
-## ⚙️ Step 3: Configure WiFi (5 minutes)
+##  Step 3: Configure WiFi (5 minutes)
 
 1. Open `Firmware/include/config.h` in VS Code
 2. Update WiFi credentials with **YOUR** network details:
@@ -64,7 +64,7 @@ PlatformIO automatically installs all dependencies when you build. No manual ste
 
 ---
 
-## 📤 Step 4: Upload Firmware (5 minutes)
+##  Step 4: Upload Firmware (5 minutes)
 
 1. Connect ESP32-WROOM-32E via USB
 2. In VS Code with PlatformIO:
@@ -83,7 +83,7 @@ pio run --target upload
 
 ---
 
-## 🖥️ Step 5: First Boot (5 minutes)
+##  Step 5: First Boot (5 minutes)
 
 1. Click **Monitor** in PlatformIO (or use `pio device monitor`)
 2. Baud rate is automatically set to **115200**
@@ -112,7 +112,7 @@ Initializing SPIFFS... ✓ SPIFFS mounted
 
 ---
 
-## ✅ Verify Operation
+##  Verify Operation
 
 ### Test Sensor Readings
 1. Wait 30 seconds for first readings
@@ -143,7 +143,7 @@ Modbus:  FAIL (Error: 100.0%)
 
 ---
 
-## 🎛️ Serial Commands
+##  Serial Commands
 
 Press these keys in Serial Monitor for quick actions:
 
@@ -156,7 +156,7 @@ Press these keys in Serial Monitor for quick actions:
 
 ---
 
-## 🔧 Minimal Test Setup
+##  Minimal Test Setup
 
 For initial testing, you only need:
 
@@ -189,7 +189,7 @@ MQ135 GND ──────> GND
 
 ---
 
-## 🐛 Common First-Time Issues
+##  Common First-Time Issues
 
 ### Issue: "Upload failed"
 **Solution**: 
@@ -226,7 +226,7 @@ MQ135 GND ──────> GND
 
 ---
 
-## 📊 Expected Behavior
+##  Expected Behavior
 
 ### Normal Operation
 - Status LED blinks **once slowly** (1 second) when entering normal operation
@@ -247,7 +247,7 @@ MQ135 GND ──────> GND
 
 ---
 
-## 🎯 Next Steps After Successful Boot
+##  Next Steps After Successful Boot
 
 1. **Let It Run**: Monitor for 1 hour, ensure no watchdog resets
 2. **Add Sensors**: Add MQ135 (GPIO 34), Modbus sensor one-by-one
@@ -257,7 +257,7 @@ MQ135 GND ──────> GND
 
 ---
 
-## 📖 Where to Go From Here
+##  Where to Go From Here
 
 ### Read Full Documentation
 - **HARDWARE_SETUP.md**: Complete wiring guide
@@ -278,7 +278,7 @@ MQ135 GND ──────> GND
 
 ---
 
-## 💡 Pro Tips
+##  Pro Tips
 
 1. **Start Small**: Don't connect everything at once - add sensors incrementally
 2. **Monitor Serial**: Always have Serial Monitor open during testing
@@ -288,7 +288,7 @@ MQ135 GND ──────> GND
 
 ---
 
-## 🆘 Need Help?
+##  Need Help?
 
 ### Check These First
 1. Serial Monitor output (most informative!)
@@ -312,7 +312,7 @@ r    // Restart system
 
 ---
 
-## ✅ Success Criteria
+##  Success Criteria
 
 You've successfully completed quick start if:
 
