@@ -1,12 +1,12 @@
 # GreenOS Hardware Interface Implementation - Summary
 
-## 🎯 Implementation Complete
+##  Implementation Complete
 
-All planned improvements for the GreenOS hardware interface have been successfully implemented based on your **ESP32-WROOM-32E** specifications and sensor hardware.
+All planned improvements for the GreenOS hardware interface have been successfully implemented based on my original **ESP32-WROOM-32E** specifications and sensor hardware.
 
 ---
 
-## 📦 What's Been Delivered
+##  What's Been Delivered
 
 ### 1. Enhanced Firmware Configuration
 **File**: `Firmware/include/config.h`
@@ -148,7 +148,7 @@ All planned improvements for the GreenOS hardware interface have been successful
 
 ---
 
-## 🔧 Key Technical Decisions Explained
+##  Key Technical Decisions Explained
 
 ### 1. Why ESP32 Hardware Watchdog?
 The ESP32-WROOM-32E includes a robust hardware watchdog timer:
@@ -196,7 +196,7 @@ FSM provides:
 ## ⚠️ Critical Hardware Notes
 
 ### 1. ESP32-WROOM-32E is 3.3V Logic!
-**ALL GPIO pins are 3.3V** - connecting 5V signals directly will **damage the MCU**!
+**ALL GPIO pins are 3.3V** - connecting 5V signals directly will **kill the MCU**!
 
 **Safe Connections**:
 - ✅ SCD-30 → 3.3V or 5V power OK, I2C OK (has level shifting)
@@ -235,7 +235,7 @@ Most relay boards are **active-LOW** (LOW = relay ON):
 
 ---
 
-## 📋 Pre-Flight Checklist
+##  Pre-Flight Checklist
 
 Before powering on the system:
 
@@ -268,7 +268,7 @@ Before powering on the system:
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Step 1: Install Development Environment
 1. Install **VS Code**
@@ -318,7 +318,7 @@ pio device monitor
 
 ---
 
-## 🐛 Known Issues & Limitations
+##  Known Issues & Limitations
 
 ### 1. MQ135 Requires 48-Hour Preheat
 **Issue**: Readings unstable for first 48 hours
@@ -352,7 +352,7 @@ pio device monitor
 
 ---
 
-## 📊 Performance Expectations
+##  Performance Expectations
 
 ### Sensor Update Rates
 - SCD-30: Every 5 seconds (configurable)
@@ -380,7 +380,7 @@ pio device monitor
 
 ---
 
-## 🔒 Security Recommendations
+##  Security Recommendations
 
 ### Immediate
 - ✅ WiFi WPA2 encryption (standard)
@@ -398,7 +398,7 @@ pio device monitor
 
 ---
 
-## 🎓 Learning Resources
+##  Learning Resources
 
 ### ESP32-WROOM-32E
 - Official Docs: https://docs.espressif.com/projects/esp-idf/
@@ -417,7 +417,7 @@ pio device monitor
 
 ---
 
-## 📞 Support & Next Steps
+##  Support & Next Steps
 
 ### Immediate Next Steps
 1. **Review Documentation**
@@ -456,7 +456,7 @@ When ready for Phase 2:
 
 ---
 
-## ✅ Conclusion
+##  Conclusion
 
 The GreenOS hardware interface has been comprehensively designed and implemented with:
 
