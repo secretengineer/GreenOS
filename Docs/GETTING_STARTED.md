@@ -1,10 +1,10 @@
 # GreenOS - Getting Started Guide
 
-## 🎯 Quick Start Overview
+##  Quick Start Overview
 
 This guide will walk you through setting up GreenOS using Firebase for rapid prototyping. Follow these steps in order to get your ESP32-WROOM-32E greenhouse controller up and running.
 
-## 📋 Prerequisites
+##  Prerequisites
 
 ### Hardware
 - **ESP32-WROOM-32E** development board (Dual-core Xtensa LX6 @ 240MHz)
@@ -23,7 +23,7 @@ This guide will walk you through setting up GreenOS using Firebase for rapid pro
 
 ---
 
-## 🔥 Step 1: Firebase Project Setup
+##  Step 1: Firebase Project Setup
 
 ### 1.1 Create Firebase Project
 
@@ -70,7 +70,7 @@ This guide will walk you through setting up GreenOS using Firebase for rapid pro
 
 ---
 
-## 🔧 Step 2: ESP32 Firmware Setup (PlatformIO)
+##  Step 2: ESP32 Firmware Setup (PlatformIO)
 
 ### 2.1 Install PlatformIO
 
@@ -116,7 +116,7 @@ pio device monitor         # Serial monitor
 
 ---
 
-## ☁️ Step 3: Deploy Cloud Functions
+##  Step 3: Deploy Cloud Functions
 
 ### 3.1 Install Firebase CLI
 
@@ -162,7 +162,7 @@ This will deploy all backend logic to Firebase.
 
 ---
 
-## 🌐 Step 4: Deploy Web UI
+##  Step 4: Deploy Web UI
 
 ### 4.1 Configure Web App
 
@@ -207,7 +207,7 @@ Your app will be live at `https://greenos-xxxxx.web.app`
 
 ---
 
-## 🔒 Step 5: Set Up Firestore Security Rules
+##  Step 5: Set Up Firestore Security Rules
 
 ### 5.1 Configure Security Rules
 
@@ -245,7 +245,7 @@ Click "Publish"
 
 ---
 
-## 👤 Step 6: Create User Account
+##  Step 6: Create User Account
 
 ### 6.1 Create First User
 
@@ -286,7 +286,7 @@ In Firestore Console, manually create:
 
 ---
 
-## ✅ Step 7: Test End-to-End
+##  Step 7: Test End-to-End
 
 ### 7.1 Verify ESP32 Connection
 
@@ -321,7 +321,7 @@ Should appear in Dashboard alerts list!
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### ESP32 won't connect to WiFi
 - Double-check SSID and password in `Firmware/include/config.h`
@@ -347,7 +347,7 @@ Should appear in Dashboard alerts list!
 
 ---
 
-## 📊 Optional: Enable BigQuery
+##  Optional: Enable BigQuery
 
 For historical data analytics:
 
@@ -365,7 +365,7 @@ For historical data analytics:
 
 ---
 
-## 🎉 Success!
+##  Success!
 
 Your GreenOS system is now running! You should have:
 
@@ -375,13 +375,13 @@ Your GreenOS system is now running! You should have:
 ✅ Web dashboard displaying live data  
 ✅ Secure authentication and access control  
 
-## 📚 Next Steps
+##  Next Steps
 
 - [Hardware Setup Guide](HARDWARE_SETUP.md) - Complete sensor wiring for ESP32
 - [Quick Start Guide](QUICKSTART.md) - Get running in 30 minutes
 - [Libraries Reference](LIBRARIES.md) - PlatformIO library configuration
 
-## 💡 Need Help?
+##  Need Help?
 
 - Check [Issues](https://github.com/patryan/greenos/issues)
 - Email: pat@patryan.com
