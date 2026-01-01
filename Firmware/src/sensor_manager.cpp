@@ -74,7 +74,9 @@ void SensorManager::init() {
     }
     
     Serial.println("[OK] SCD-30 initialized");
-    Serial.printf("     Firmware version: 0x%04X\n", _scd30.readFirmwareVersion());
+    uint16_t fwVersion = 0;
+    _scd30.getFirmwareVersion(&fwVersion);
+    Serial.printf("     Firmware version: 0x%04X\n", fwVersion);
   } else {
     Serial.println("[WARN] SCD-30 not found!");
     _scd30Ready = false;
@@ -420,7 +422,7 @@ void SensorManager::performADCCalibration() {
   
   // Use ESP32's internal calibration
   esp_adc_cal_characteristics_t adc_chars;
-  esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, &adc_chars);
+  esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, 1100, &adc_chars);
   
   _adcCal.vRef = adc_chars.vref / 1000.0;  // Convert mV to V
   _adcCal.valid = true;

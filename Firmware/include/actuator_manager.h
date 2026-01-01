@@ -75,6 +75,7 @@ struct ActuatorState {
   unsigned long heaterPrimaryLastToggle;
   unsigned long heaterSecondaryLastToggle;
   unsigned long fanExhaustLastToggle;
+  unsigned long fanCirculationLastToggle;
   unsigned long pumpLastToggle;
 };
 

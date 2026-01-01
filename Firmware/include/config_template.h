@@ -133,7 +133,7 @@
 #define STATUS_LED_PIN 2                // Built-in LED (GPIO2)
 
 // SPI Bus (SD Card)
-#define SD_CS_PIN 5                     // SD card chip select
+#define GREENOS_SD_CS_PIN 5             // SD card chip select
 #define SD_MOSI_PIN 23                  // SPI MOSI
 #define SD_MISO_PIN 19                  // SPI MISO
 #define SD_SCK_PIN 18                   // SPI Clock
@@ -161,11 +161,11 @@
 #define ADC_SAMPLE_DELAY_US 100         // Delay between samples (microseconds)
 
 // ESP32 ADC attenuation settings
-// ADC_ATTEN_DB_0   = 0-1.1V range
-// ADC_ATTEN_DB_2_5 = 0-1.5V range
-// ADC_ATTEN_DB_6   = 0-2.2V range
-// ADC_ATTEN_DB_11  = 0-3.3V range (recommended for most sensors)
-#define ADC_ATTENUATION ADC_ATTEN_DB_11
+// ADC_0db   = 0-1.1V range
+// ADC_2_5db = 0-1.5V range  
+// ADC_6db   = 0-2.2V range
+// ADC_11db  = 0-3.3V range (recommended for most sensors)
+#define ADC_ATTENUATION ADC_11db
 
 // ============================================================================
 // PREFERENCES / NVS STORAGE (replaces EEPROM)

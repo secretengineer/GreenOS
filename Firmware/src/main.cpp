@@ -341,9 +341,9 @@ void actuatorTask(void* parameter) {
         if (xSemaphoreTake(sensorDataMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
           // Determine emergency type from sensor data
           if (latestSensorData.airTemp < TEMP_MIN) {
-            actuators.handleEmergency(LOW_TEMP);
+            actuators.handleEmergency(EMERGENCY_LOW_TEMP);
           } else if (latestSensorData.airTemp > TEMP_MAX) {
-            actuators.handleEmergency(HIGH_TEMP);
+            actuators.handleEmergency(EMERGENCY_HIGH_TEMP);
           }
           xSemaphoreGive(sensorDataMutex);
         }
