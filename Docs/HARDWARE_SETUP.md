@@ -6,7 +6,7 @@ This document provides the detailed implementation plan for the GreenOS hardware
 
 ---
 
-## ✅ Completed Implementations
+##  Completed Implementations
 
 ### 1. Enhanced Configuration System
 - ✅ Complete hardware pin mappings for ESP32-WROOM-32E (3.3V logic)
@@ -56,7 +56,7 @@ This document provides the detailed implementation plan for the GreenOS hardware
 
 ---
 
-## 🔧 Hardware Wiring Details
+##  Hardware Wiring Details
 
 ### Critical Notes for ESP32-WROOM-32E
 - ⚠️ **ALL GPIO pins are 3.3V logic** - DO NOT connect 5V signals directly!
@@ -236,7 +236,7 @@ IN6      ────────>   GPIO 25 (Grow Lights)       ──> Grow Li
 
 ---
 
-## 🔋 Power Distribution Plan
+##  Power Distribution Plan
 
 ### Power Requirements
 
@@ -275,7 +275,7 @@ Note: All grounds must be common (star ground configuration)
 
 ---
 
-## 📊 Calibration Procedures
+##  Calibration Procedures
 
 ### ADC Calibration (One-time setup)
 
@@ -302,7 +302,7 @@ Note: All grounds must be common (star ground configuration)
 
 ---
 
-## 🧪 Testing & Validation
+##  Testing & Validation
 
 ### Pre-Power-On Checklist
 
@@ -338,7 +338,7 @@ Note: All grounds must be common (star ground configuration)
 
 ---
 
-## 🐛 Debugging Tools
+##  Debugging Tools
 
 ### Serial Commands (Built-in)
 
@@ -402,7 +402,7 @@ Expected output: `Found device at 0x61` (SCD-30)
 
 ---
 
-## 📈 Next Steps for Production Deployment
+##  Next Steps for Production Deployment
 
 ### Immediate (Week 1-2)
 - [ ] Assemble breadboard prototype with all sensors
@@ -427,7 +427,7 @@ Expected output: `Found device at 0x61` (SCD-30)
 
 ---
 
-## 🔧 Troubleshooting Common Issues
+##  Troubleshooting Common Issues
 
 ### Issue 1: SCD-30 Not Detected
 **Symptoms**: Firmware reports "SCD-30 initialization failed"
@@ -496,7 +496,7 @@ Expected output: `Found device at 0x61` (SCD-30)
 
 ---
 
-## 📚 Additional Documentation
+##  Additional Documentation
 
 - **[LIBRARIES.md](LIBRARIES.md)**: Complete list of required Arduino libraries
 - **[README.md](../README.md)**: Project overview and architecture
@@ -504,7 +504,7 @@ Expected output: `Found device at 0x61` (SCD-30)
 
 ---
 
-## 💡 Pro Tips
+##  Pro Tips
 
 1. **Use labeled wires**: Color-code by function (red=5V, black=GND, yellow=I2C, etc.)
 2. **Ferrite beads**: Add to long sensor cables to reduce EMI
@@ -527,4 +527,4 @@ If you encounter problems not covered here:
 **Last Updated**: December 31, 2025
 **Firmware Version**: v2.0.0-dev
 **Platform**: ESP32-WROOM-32E
-**Author**: GreenOS Development Team
+**Author**: Pat Ryan
