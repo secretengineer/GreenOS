@@ -2,19 +2,20 @@
 
 ## 🎯 Quick Start Overview
 
-This guide will walk you through setting up GreenOS Phase 1 using Firebase for rapid prototyping. Follow these steps in order to get your greenhouse controller up and running.
+This guide will walk you through setting up GreenOS using Firebase for rapid prototyping. Follow these steps in order to get your ESP32-WROOM-32E greenhouse controller up and running.
 
 ## 📋 Prerequisites
 
 ### Hardware
-- Arduino UNO Q (or compatible ESP32-based board)
-- USB-C cable (5V @ 3A power supply)
-- Sensors (see [HARDWARE.md](HARDWARE.md) for complete BOM)
-- Actuator relays
-- WiFi network access
+- **ESP32-WROOM-32E** development board (Dual-core Xtensa LX6 @ 240MHz)
+- USB cable (for programming and initial power)
+- 5V DC power supply (for production deployment)
+- Sensors (see [HARDWARE_SETUP.md](HARDWARE_SETUP.md) for complete BOM)
+- Actuator relays (5V optoisolated, 15A rating)
+- WiFi network access (2.4GHz - ESP32 does not support 5GHz)
 
 ### Software & Accounts
-- [Arduino IDE](https://www.arduino.cc/en/software) or PlatformIO
+- [VS Code](https://code.visualstudio.com/) with [PlatformIO extension](https://platformio.org/install/ide?install=vscode)
 - [Node.js](https://nodejs.org/) v18 or later
 - [Firebase account](https://firebase.google.com/) (free tier works)
 - [Google Cloud account](https://cloud.google.com/) (optional for BigQuery)
@@ -69,43 +70,49 @@ This guide will walk you through setting up GreenOS Phase 1 using Firebase for r
 
 ---
 
-## 🔧 Step 2: Arduino Firmware Setup
+## 🔧 Step 2: ESP32 Firmware Setup (PlatformIO)
 
-### 2.1 Install Arduino IDE & Libraries
+### 2.1 Install PlatformIO
 
-**Required Libraries:**
-```
-- Firebase ESP Client (by Mobizt)
-- DHT sensor library
-- Adafruit Unified Sensor
-- ArduinoJson
-```
-
-Install via Arduino IDE: `Tools > Manage Libraries`
+1. Install [VS Code](https://code.visualstudio.com/)
+2. Open VS Code → Extensions (Ctrl+Shift+X)
+3. Search for "PlatformIO IDE" → Install
+4. Restart VS Code when prompted
 
 ### 2.2 Configure Firmware
 
-1. Navigate to `Firmware/src/`
-2. Copy `config.example.h` to `config.h`:
+1. Open the `GreenOS` folder in VS Code
+2. Navigate to `Firmware/include/`
+3. Copy `config_template.h` to `config.h`:
    ```powershell
-   cp Firmware\src\config.example.h Firmware\src\config.h
+   cp Firmware\include\config_template.h Firmware\include\config.h
    ```
-3. Edit `config.h` with your credentials:
+4. Edit `config.h` with your credentials:
    ```cpp
    #define WIFI_SSID "YourWiFiName"
    #define WIFI_PASSWORD "YourWiFiPassword"
    #define FIREBASE_HOST "greenos-xxxxx.firebaseio.com"
-   #define API_KEY "your-firebase-api-key"
+   #define FIREBASE_API_KEY "your-firebase-api-key"
+   #define GREENHOUSE_ID "denver_greenhouse_01"
    ```
 
-### 2.3 Upload Firmware
+### 2.3 Build & Upload Firmware
 
-1. Connect Arduino UNO Q via USB
-2. Open `Firmware/src/main.cpp` in Arduino IDE
-3. Select board: `Tools > Board > ESP32 Arduino > ESP32 Dev Module`
-4. Select port: `Tools > Port > COM# (Arduino UNO Q)`
-5. Click Upload (→)
-6. Open Serial Monitor to verify connection
+1. Connect ESP32-WROOM-32E via USB
+2. Open VS Code with PlatformIO
+3. Click the PlatformIO icon in the left sidebar
+4. Under "PROJECT TASKS" → "esp32dev":
+   - Click **Build** to compile
+   - Click **Upload** to flash firmware
+   - Click **Monitor** to open Serial Monitor (115200 baud)
+
+**Alternative CLI Commands:**
+```powershell
+cd Firmware
+pio run                    # Build only
+pio run --target upload    # Build and upload
+pio device monitor         # Serial monitor
+```
 
 ---
 
@@ -281,10 +288,10 @@ In Firestore Console, manually create:
 
 ## ✅ Step 7: Test End-to-End
 
-### 7.1 Verify Arduino Connection
+### 7.1 Verify ESP32 Connection
 
-1. Check Serial Monitor - should see "WiFi connected!"
-2. Should see periodic sensor readings
+1. Open PlatformIO Serial Monitor (115200 baud) - should see "WiFi connected!"
+2. Should see periodic sensor readings every 5 seconds
 3. Data should appear in Firestore Console under `greenhouses/denver_greenhouse_01/sensors`
 
 ### 7.2 Verify Web Dashboard
@@ -316,10 +323,11 @@ Should appear in Dashboard alerts list!
 
 ## 🐛 Troubleshooting
 
-### Arduino won't connect to WiFi
-- Double-check SSID and password in `config.h`
+### ESP32 won't connect to WiFi
+- Double-check SSID and password in `Firmware/include/config.h`
 - Ensure WiFi is 2.4GHz (ESP32 doesn't support 5GHz)
 - Check Serial Monitor for error messages
+- Verify ESP32 is within range of router
 
 ### Firebase permission denied
 - Verify Firestore security rules are published
@@ -361,7 +369,7 @@ For historical data analytics:
 
 Your GreenOS system is now running! You should have:
 
-✅ Arduino collecting sensor data  
+✅ ESP32 collecting sensor data  
 ✅ Real-time data in Firestore  
 ✅ Cloud Functions processing and alerting  
 ✅ Web dashboard displaying live data  
@@ -369,9 +377,9 @@ Your GreenOS system is now running! You should have:
 
 ## 📚 Next Steps
 
-- [Hardware Setup Guide](HARDWARE.md) - Complete sensor wiring
-- [API Documentation](API.md) - Integrate with other systems
-- [Contributing Guide](CONTRIBUTING.md) - Help improve GreenOS
+- [Hardware Setup Guide](HARDWARE_SETUP.md) - Complete sensor wiring for ESP32
+- [Quick Start Guide](QUICKSTART.md) - Get running in 30 minutes
+- [Libraries Reference](LIBRARIES.md) - PlatformIO library configuration
 
 ## 💡 Need Help?
 

@@ -2,107 +2,109 @@
 
 ## 🚀 Get Up and Running in 30 Minutes
 
-This quick start guide gets your Arduino UNO Q running with GreenOS firmware for initial testing.
+This quick start guide gets your ESP32-WROOM-32E running with GreenOS firmware for initial testing.
 
 ---
 
 ## ⚡ Prerequisites (5 minutes)
 
 ### Hardware Ready
-- [ ] Arduino UNO Q with USB-C cable
-- [ ] Computer with Arduino IDE 2.x installed
+- [ ] ESP32-WROOM-32E development board with USB cable
+- [ ] Computer with VS Code installed
 - [ ] At least SCD-30 sensor connected (for testing)
 
 ### Software Ready
-- [ ] Arduino IDE 2.x installed
-- [ ] Arduino UNO R4 board support installed
+- [ ] VS Code installed
+- [ ] PlatformIO IDE extension installed
 
 ---
 
-## 📦 Step 1: Install Board Support (5 minutes)
+## 📦 Step 1: Install PlatformIO (5 minutes)
 
-1. Open **Arduino IDE 2.x**
-2. Go to **File → Preferences**
-3. In "Additional Boards Manager URLs", add:
-   ```
-   https://github.com/arduino/ArduinoCore-renesas/releases/latest/download/package_renesas_index.json
-   ```
-4. Click **OK**
-5. Go to **Tools → Board → Boards Manager**
-6. Search for **"Renesas"** or **"UNO R4"**
-7. Install **"Arduino UNO R4 Boards"**
-8. Select **Tools → Board → Arduino UNO R4 → Arduino UNO R4 WiFi**
+1. Open **VS Code**
+2. Go to **Extensions** (Ctrl+Shift+X)
+3. Search for **"PlatformIO IDE"**
+4. Click **Install**
+5. Wait for installation to complete
+6. Restart VS Code when prompted
+7. Open the **GreenOS/Firmware** folder in VS Code
+8. PlatformIO will automatically detect `platformio.ini`
 
 ---
 
-## 📚 Step 2: Install Libraries (10 minutes)
+## 📚 Step 2: Install Libraries (Automatic!)
 
-Open **Tools → Manage Libraries** and install these one-by-one:
+PlatformIO automatically installs all dependencies when you build. No manual steps needed!
 
-1. Search **"Adafruit SCD30"** → Install latest
-   - Will auto-install dependencies (Adafruit BusIO)
-2. Search **"ModbusMaster"** → Install latest
-3. Search **"ArduinoJson"** → Install v6.21.3 (or latest v6.x, **NOT v7**)
+**Libraries installed automatically via `platformio.ini`:**
+1. SparkFun SCD30 Arduino Library
+2. ModbusMaster
+3. ArduinoJson v6.x (**NOT v7**)
+4. Firebase Arduino Client Library
+5. WiFiManager
 
-**Note**: Firebase integration is currently stubbed out for initial testing. The system will operate in offline mode with local data logging only.
-
-**Verification**: Go to **Sketch → Include Library** and confirm all are listed.
+**Verification**: Click **PlatformIO Home** → **Libraries** tab to see installed libraries.
 
 ---
 
 ## ⚙️ Step 3: Configure WiFi (5 minutes)
 
-1. Open `d:\GreenOS\Firmware\src\main\config.h` in Arduino IDE (or in any text editor)
+1. Open `Firmware/include/config.h` in VS Code
 2. Update WiFi credentials with **YOUR** network details:
 
 ```cpp
-// Line 15-16: Update WiFi
+// WiFi Configuration
 #define WIFI_SSID "YOUR_WIFI_NAME"
 #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
 ```
 
-3. **Save** the file
+3. **Save** the file (Ctrl+S)
 
-**Note**: Firebase configuration is optional for initial testing. The system will work without cloud connectivity.
+**Note**: Firebase configuration is optional for initial testing. The system will work without cloud connectivity using SPIFFS for local data buffering.
 
 ---
 
 ## 📤 Step 4: Upload Firmware (5 minutes)
 
-1. Connect Arduino UNO Q via USB-C
-2. In Arduino IDE:
-   - **File → Open** → Navigate to `d:\GreenOS\Firmware\src\main\main.ino`
-3. Select correct port:
-   - **Tools → Port** → Select the COM port with "UNO R4"
-4. Click **Upload** button (→ icon)
-5. Wait for compilation and upload (~2-3 minutes)
-6. Look for "**Upload successful**"
+1. Connect ESP32-WROOM-32E via USB
+2. In VS Code with PlatformIO:
+   - Click the **PlatformIO icon** in the left sidebar
+   - Under **PROJECT TASKS** → **esp32dev**:
+   - Click **Build** (compiles firmware)
+   - Click **Upload** (flashes to ESP32)
+3. Wait for upload to complete (~1-2 minutes)
+4. Look for "**SUCCESS**" in the terminal
+
+**Alternative CLI:**
+```powershell
+cd Firmware
+pio run --target upload
+```
 
 ---
 
 ## 🖥️ Step 5: First Boot (5 minutes)
 
-1. Open **Serial Monitor** (icon in top-right, or Tools → Serial Monitor)
-2. Set baud rate to **115200**
+1. Click **Monitor** in PlatformIO (or use `pio device monitor`)
+2. Baud rate is automatically set to **115200**
 3. You should see:
 
 ```
 ╔════════════════════════════════════════╗
 ║   GreenOS - Intelligent Greenhouse     ║
-║   Arduino UNO Q Firmware v1.0          ║
+║   ESP32-WROOM-32E Firmware v2.0        ║
 ╚════════════════════════════════════════╝
 
-Initializing Software Watchdog Timer...
-✓ Software watchdog enabled (8 second timeout)
-ℹ️  For production deployment, enable Renesas IWDT hardware watchdog
-Initializing SD card... ✗ SD card initialization failed
-⚠️ Offline buffering disabled
+Initializing Hardware Watchdog Timer...
+✓ Hardware watchdog enabled (30 second timeout)
+Initializing SPIFFS... ✓ SPIFFS mounted
+ℹ️  Offline buffering enabled (up to 500 readings)
 
 [STATE] Initializing Sensors...
 === Initializing Sensors ===
 ✓ SCD-30 CO2 sensor initialized
   Altitude compensation: 1609 meters
-✓ Modbus RS485 initialized
+✓ Modbus RS485 initialized (UART2)
 ...
 ```
 
@@ -160,19 +162,19 @@ For initial testing, you only need:
 
 ### Option 1: SCD-30 Only (Simplest)
 ```
-SCD-30          Arduino UNO Q
+SCD-30          ESP32-WROOM-32E
 ────────────────────────────
 VCC    ──────>   3.3V or 5V
 GND    ──────>   GND
-SDA    ──────>   Pin 20
-SCL    ──────>   Pin 21
+SDA    ──────>   GPIO 21
+SCL    ──────>   GPIO 22
 ```
 
 **Result**: You'll get CO2, temperature, and humidity readings!
 
 ### Option 2: Add MQ135 (With Voltage Divider!)
 ```
-MQ135 AOUT ──[10kΩ]──┬──> Arduino A0
+MQ135 AOUT ──[10kΩ]──┬──> ESP32 GPIO 34 (ADC1_CH6)
                       │
                    [20kΩ]
                       │
@@ -182,7 +184,8 @@ MQ135 VCC ──────> 5V
 MQ135 GND ──────> GND
 ```
 
-**⚠️ WARNING**: Without the voltage divider, you'll damage the Arduino!
+**⚠️ WARNING**: Without the voltage divider, you'll damage the ESP32!
+**Note**: Use ADC1 pins only (GPIO 32-39) - ADC2 conflicts with WiFi
 
 ---
 
@@ -190,36 +193,36 @@ MQ135 GND ──────> GND
 
 ### Issue: "Upload failed"
 **Solution**: 
-- Check correct board selected (UNO R4 WiFi)
-- Verify USB cable is data-capable (not charge-only)
-- Try different USB port
-- Press reset button on Arduino before upload
+- Check ESP32 is connected via USB
+- Try a different USB port or cable
+- Press and hold BOOT button on ESP32 while uploading
+- Check PlatformIO terminal for specific error
 
 ### Issue: "SCD-30 initialization failed"
 **Solution**:
-- Verify I2C wiring (pins 20, 21)
+- Verify I2C wiring (GPIO 21=SDA, GPIO 22=SCL)
 - Check SDA/SCL not swapped
 - Ensure SCD-30 is powered (3.3V or 5V)
 
 ### Issue: "WiFi connection timeout"
 **Solution**:
-- Verify SSID and password in config.h
-- Check WiFi network is 2.4GHz (not 5GHz - ESP32 doesn't support 5GHz)
-- Move Arduino closer to router
+- Verify SSID and password in `Firmware/include/config.h`
+- Check WiFi network is 2.4GHz (ESP32 doesn't support 5GHz)
+- Move ESP32 closer to router
 - System will continue in offline mode (safe to proceed)
 
-### Issue: Watchdog keeps resetting every 8 seconds
+### Issue: Watchdog keeps resetting every 30 seconds
 **Solution**:
 - This means firmware is hanging somewhere
 - Check Serial Monitor for error messages before reset
-- Temporarily disable WDT: In config.h, change `#define WDT_ENABLED true` to `false`
+- Check for blocking code or infinite loops
 - Report issue with Serial Monitor output
 
 ### Issue: Compile errors about missing libraries
 **Solution**:
-- Go back to Step 2 and install all libraries
-- Make sure ArduinoJson is v6.x (not v7)
-- Restart Arduino IDE after installing libraries
+- Run `pio pkg install` in the Firmware directory
+- Check `platformio.ini` for correct lib_deps
+- Delete `.pio` folder and rebuild
 
 ---
 
@@ -228,8 +231,9 @@ MQ135 GND ──────> GND
 ### Normal Operation
 - Status LED blinks **once slowly** (1 second) when entering normal operation
 - Serial Monitor shows sensor readings every 5 seconds
-- No watchdog resets
+- No watchdog resets (30-second timeout)
 - WiFi connected (or "Operating in offline mode")
+- FreeRTOS tasks running on both cores
 
 ### Safe Mode (if sensors fail)
 - Status LED blinks **rapidly** (5 quick blinks)
@@ -246,9 +250,9 @@ MQ135 GND ──────> GND
 ## 🎯 Next Steps After Successful Boot
 
 1. **Let It Run**: Monitor for 1 hour, ensure no watchdog resets
-2. **Add Sensors**: Add MQ135, Modbus sensor one-by-one
+2. **Add Sensors**: Add MQ135 (GPIO 34), Modbus sensor one-by-one
 3. **Calibrate**: Run calibration procedures (press 'c')
-4. **Test Offline**: Disconnect WiFi, verify SD buffering
+4. **Test Offline**: Disconnect WiFi, verify SPIFFS buffering
 5. **Connect Actuators**: Add relay board and test (no high-voltage loads yet!)
 
 ---
@@ -327,6 +331,7 @@ Time to start building out the full sensor suite and testing in your greenhouse 
 
 ---
 
-**Last Updated**: December 15, 2025
+**Last Updated**: December 31, 2025
+**Platform**: ESP32-WROOM-32E
 **Estimated Time**: 30 minutes (first time)
 **Difficulty**: Beginner-Intermediate

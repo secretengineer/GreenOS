@@ -1,22 +1,23 @@
 # GreenOS - Hardware Implementation Guide
 
-## Next Phase Implementation Plan
+## ESP32-WROOM-32E Implementation Plan
 
-This document provides the detailed implementation plan for the GreenOS hardware interface based on the Arduino UNO Q platform and your specific sensor hardware.
+This document provides the detailed implementation plan for the GreenOS hardware interface based on the **ESP32-WROOM-32E** platform and your specific sensor hardware.
 
 ---
 
 ## ✅ Completed Implementations
 
 ### 1. Enhanced Configuration System
-- ✅ Complete hardware pin mappings for Arduino UNO Q (3.3V logic)
+- ✅ Complete hardware pin mappings for ESP32-WROOM-32E (3.3V logic)
 - ✅ All sensor thresholds with optimal ranges
 - ✅ Altitude compensation for Denver (5280 ft)
-- ✅ ADC calibration structure with CRC32 integrity checking
+- ✅ SPIFFS for offline data buffering (replaces SD card)
 - ✅ System state machine enumerations
 - ✅ Timing intervals and safety limits
+- ✅ Hardware Watchdog Timer (30-second timeout)
 
-**File**: `Firmware/src/config.h`
+**File**: `Firmware/include/config.h`
 
 ### 2. Advanced Sensor Manager
 - ✅ SCD-30 CO2/Temperature/Humidity integration (I2C)
@@ -28,13 +29,14 @@ This document provides the detailed implementation plan for the GreenOS hardware
 - ✅ Sanity checking and fallback to last known good values
 - ✅ CRC32 data integrity validation
 
-**Files**: `Firmware/src/sensor_manager.h`, `Firmware/src/sensor_manager.cpp`
+**Files**: `Firmware/include/sensor_manager.h`, `Firmware/src/sensor_manager.cpp`
 
 ### 3. Robust Main Firmware
 - ✅ Finite State Machine (FSM) for system control
-- ✅ Hardware Watchdog Timer (ESP32 WDT, 8-second timeout)
-- ✅ SD card buffering for offline operation
+- ✅ Hardware Watchdog Timer (ESP32 WDT, 30-second timeout)
+- ✅ SPIFFS buffering for offline operation
 - ✅ WiFi reconnection with non-blocking timeout
+- ✅ FreeRTOS dual-core task management
 - ✅ Memory health monitoring
 - ✅ Emergency and safe-mode protocols
 - ✅ Serial command interface for diagnostics
@@ -50,26 +52,27 @@ This document provides the detailed implementation plan for the GreenOS hardware
 - ✅ Emergency protocols for all failure modes
 - ✅ Warning-level automated responses
 
-**Files**: `Firmware/src/actuator_manager.h`, `Firmware/src/actuator_manager.cpp`
+**Files**: `Firmware/include/actuator_manager.h`, `Firmware/src/actuator_manager.cpp`
 
 ---
 
 ## 🔧 Hardware Wiring Details
 
-### Critical Notes for Arduino UNO Q
+### Critical Notes for ESP32-WROOM-32E
 - ⚠️ **ALL GPIO pins are 3.3V logic** - DO NOT connect 5V signals directly!
-- ✅ Power supply: USB-C provides 5V to board
+- ✅ Power supply: USB provides 5V to board (or external 5V DC)
 - ✅ Use level shifters or voltage dividers for 5V sensors
+- ✅ ADC1 pins only (GPIO 32-39) - ADC2 conflicts with WiFi
 
 ### I2C Bus (SCD-30 CO2 Sensor)
 
 ```
-SCD-30              Arduino UNO Q
+SCD-30              ESP32-WROOM-32E
 ───────────────────────────────────
 VCC      ────────>   3.3V or 5V (SCD-30 supports both)
 GND      ────────>   GND
-SDA      ────────>   Pin 20 (I2C SDA)
-SCL      ────────>   Pin 21 (I2C SCL)
+SDA      ────────>   GPIO 21 (I2C SDA)
+SCL      ────────>   GPIO 22 (I2C SCL)
 ```
 
 **Notes:**
@@ -84,13 +87,13 @@ SCL      ────────>   Pin 21 (I2C SCL)
 **Hardware**: MAX485 TTL to RS485 Transceiver Module
 
 ```
-MAX485              Arduino UNO Q           Soil Sensor
+MAX485              ESP32-WROOM-32E         Soil Sensor
 ───────────────────────────────────────────────────────
-VCC      ────────>   5V
+VCC      ────────>   5V (or 3.3V if module supports)
 GND      ────────>   GND
-RO       ────────>   Pin 0 (RX)
-DI       ────────>   Pin 1 (TX)
-DE/RE    ────────>   Pin 2 (Driver Enable)
+RO       ────────>   GPIO 16 (UART2 RX)
+DI       ────────>   GPIO 17 (UART2 TX)
+DE/RE    ────────>   GPIO 4 (RS485 Driver Enable)
 A        ────────────────────────────────>  A (Yellow wire)
 B        ────────────────────────────────>  B (Blue wire)
 ```
@@ -164,23 +167,20 @@ DOUT     ────────>   (not used)
 
 ---
 
-### SD Card Module (SPI)
+### SPIFFS (Internal Flash Storage)
 
-```
-SD Card Module      Arduino UNO Q
-──────────────────────────────────
-VCC      ────────>   5V (or 3.3V if module supports)
-GND      ────────>   GND
-CS       ────────>   Pin 10 (SS/CS)
-MOSI     ────────>   Pin 11 (MOSI)
-MISO     ────────>   Pin 12 (MISO)
-SCK      ────────>   Pin 13 (SCK)
-```
+The ESP32-WROOM-32E uses **SPIFFS** (SPI Flash File System) for offline data buffering instead of an external SD card.
+
+**Advantages over SD Card:**
+- No additional hardware required
+- More reliable (no card to fail or corrupt)
+- Faster read/write operations
+- Up to 500 readings buffered in internal flash
 
 **Notes:**
-- Most SD modules have onboard voltage regulation (5V → 3.3V)
-- Used for offline data buffering when WiFi is down
-- Format as FAT32 before use
+- Partition size: ~1.5MB for SPIFFS
+- Automatic wear leveling built-in
+- Data persists across power cycles
 
 ---
 
@@ -188,11 +188,11 @@ SCK      ────────>   Pin 13 (SCK)
 
 #### PIR Motion Sensor
 ```
-PIR Sensor          Arduino UNO Q
+PIR Sensor          ESP32-WROOM-32E
 ──────────────────────────────────
-VCC      ────────>   5V
+VCC      ────────>   5V (or 3.3V)
 GND      ────────>   GND
-OUT      ────────>   Pin 3 (with level shifter if 5V output!)
+OUT      ────────>   GPIO 27 (with level shifter if 5V output!)
 ```
 
 **⚠️ Check your PIR output voltage!**
@@ -201,9 +201,9 @@ OUT      ────────>   Pin 3 (with level shifter if 5V output!)
 
 #### UPS Status Monitor
 ```
-UPS Module          Arduino UNO Q
+UPS Module          ESP32-WROOM-32E
 ──────────────────────────────────
-Status   ────────>   Pin 4 (active-low, internal pullup enabled)
+Status   ────────>   GPIO 26 (active-low, internal pullup enabled)
 GND      ────────>   GND
 ```
 
@@ -214,16 +214,16 @@ GND      ────────>   GND
 **Hardware**: 5V Optoisolated Relay Board (15A rating)
 
 ```
-Relay Module        Arduino UNO Q          Load (120VAC)
+Relay Module        ESP32-WROOM-32E        Load (120VAC)
 ──────────────────────────────────────────────────────────
-VCC      ────────>   5V
+VCC      ────────>   5V (external supply)
 GND      ────────>   GND
-IN1      ────────>   Pin 6  (Heater Primary)    ──> 1500W Heater
-IN2      ────────>   Pin 7  (Heater Secondary)  ──> 1500W Heater
-IN3      ────────>   Pin 8  (Fan Exhaust)       ──> Exhaust Fan
-IN4      ────────>   Pin 9  (Fan Circulation)   ──> Circulation Fan
-IN5      ────────>   Pin 11 (Pump Irrigation)   ──> Water Pump
-IN6      ────────>   Pin 12 (Grow Lights)       ──> Grow Lights
+IN1      ────────>   GPIO 13 (Heater Primary)    ──> 1500W Heater
+IN2      ────────>   GPIO 12 (Heater Secondary)  ──> 1500W Heater
+IN3      ────────>   GPIO 14 (Fan Exhaust)       ──> Exhaust Fan
+IN4      ────────>   GPIO 27 (Fan Circulation)   ──> Circulation Fan
+IN5      ────────>   GPIO 26 (Pump Irrigation)   ──> Water Pump
+IN6      ────────>   GPIO 25 (Grow Lights)       ──> Grow Lights
 ```
 
 **⚠️ Important Relay Notes:**
@@ -242,13 +242,12 @@ IN6      ────────>   Pin 12 (Grow Lights)       ──> Grow Lig
 
 | Component | Voltage | Current | Notes |
 |-----------|---------|---------|-------|
-| Arduino UNO Q | 5V USB-C | ~500mA | Main MCU power |
-| SCD-30 CO2 Sensor | 3.3V-5V | 19mA avg | From Arduino 5V |
-| MQ135 | 5V | 150mA | Separate 5V supply |
-| MAX485 Transceiver | 5V | 10mA | From Arduino 5V |
+| ESP32-WROOM-32E | 5V USB or DC | ~240mA (WiFi active) | Main MCU power |
+| SCD-30 CO2 Sensor | 3.3V-5V | 19mA avg | From ESP32 3.3V or 5V |
+| MQ135 | 5V | 150mA | Separate 5V supply recommended |
+| MAX485 Transceiver | 3.3V or 5V | 10mA | From ESP32 3.3V |
 | Soil Sensor | 12-24V DC | 50mA | Separate DC supply |
-| SD Card | 3.3V | 100mA | From Arduino 3.3V |
-| PIR Sensor | 5V | 50mA | From Arduino 5V or ext |
+| PIR Sensor | 5V or 3.3V | 50mA | From ESP32 or external |
 | Relay Board | 5V | 70mA/relay | Separate 5V supply |
 
 ### Recommended Power Architecture
@@ -256,10 +255,10 @@ IN6      ────────>   Pin 12 (Grow Lights)       ──> Grow Lig
 ```
 120VAC ───> Multiple 5V DC Adapters
              │
-             ├─> 5V/3A ──> Arduino UNO Q (USB-C)
+             ├─> 5V/2A ──> ESP32-WROOM-32E (USB or VIN)
              │              │
-             │              ├─> 5V pin ──> SCD-30, MAX485, SD Card
-             │              └─> 3.3V pin ─> (internal regulation)
+             │              ├─> 3.3V pin ──> SCD-30, MAX485
+             │              └─> SPIFFS (internal, no external power)
              │
              ├─> 5V/1A ──> MQ135 Sensor (high power during preheat)
              │
@@ -270,9 +269,9 @@ IN6      ────────>   Pin 12 (Grow Lights)       ──> Grow Lig
 Note: All grounds must be common (star ground configuration)
 ```
 
-**⚠️ DO NOT power all sensors from Arduino 5V pin!**
-- Arduino 5V pin max current: ~500mA
-- Total sensor draw can exceed this
+**⚠️ DO NOT power all sensors from ESP32 3.3V pin!**
+- ESP32 3.3V pin max current: ~500mA
+- Use external power supplies for high-current devices
 
 ---
 
@@ -284,10 +283,10 @@ Note: All grounds must be common (star ground configuration)
 2. Press **'c'** to enter calibration mode
 3. Select option **1** (ADC Calibration)
 4. Follow prompts:
-   - **Step 1**: Connect ADC pin (A0) to GND, press Enter
+   - **Step 1**: Connect ADC pin (GPIO 34) to GND, press Enter
    - **Step 2**: Connect ADC pin to known voltage source (e.g., 2.5V reference), enter voltage
    - **Step 3**: Firmware measures Vref automatically
-5. Calibration saved to EEPROM
+5. Calibration saved to SPIFFS
 6. Verify: Read ADC pins and compare to multimeter
 
 ### MQ135 Calibration (After 48-hour preheat)
@@ -297,7 +296,7 @@ Note: All grounds must be common (star ground configuration)
 3. Press **'c'** to enter calibration mode
 4. Select option **2** (MQ135 Calibration)
 5. Follow prompts
-6. R0 value saved to EEPROM
+6. R0 value saved to SPIFFS
 
 **Note**: Without known gas concentrations, MQ135 will give relative readings (suitable for trend analysis)
 
@@ -313,19 +312,19 @@ Note: All grounds must be common (star ground configuration)
 - [ ] Ensure all grounds are connected (common ground)
 - [ ] Verify 120VAC wiring is correct and isolated (heaters, fans)
 - [ ] Test UPS failover manually
+- [ ] Confirm using ADC1 pins only (GPIO 32-39) - ADC2 conflicts with WiFi
 
 ### Initial Power-On Sequence
 
-1. **Power Arduino UNO Q only** (no sensors connected)
-   - Upload firmware via USB
-   - Check Serial Monitor for boot messages
+1. **Power ESP32-WROOM-32E only** (no sensors connected)
+   - Build and upload firmware via PlatformIO
+   - Open Serial Monitor (115200 baud)
    - Verify watchdog timer doesn't reset
 
 2. **Add sensors one-by-one**:
    - Connect SCD-30 → Check I2C detection
    - Connect Modbus sensor → Check communication
-   - Connect MQ135 → Check ADC readings
-   - Connect SD card → Verify initialization
+   - Connect MQ135 → Check ADC readings on GPIO 34
 
 3. **Test actuators** (NO LOAD):
    - Disconnect heaters/fans from relay outputs
@@ -360,7 +359,7 @@ If SCD-30 not detected, upload I2C scanner sketch:
 #include <Wire.h>
 
 void setup() {
-  Wire.begin(20, 21);  // SDA, SCL
+  Wire.begin(21, 22);  // SDA=GPIO21, SCL=GPIO22 for ESP32
   Serial.begin(115200);
   Serial.println("I2C Scanner");
 }
@@ -439,7 +438,7 @@ Expected output: `Found device at 0x61` (SCD-30)
 
 **Solutions**:
 1. Run I2C scanner (see Debugging Tools section)
-2. Check SDA/SCL wiring (pins 20/21)
+2. Check SDA/SCL wiring (GPIO 21/22 for ESP32)
 3. Verify power supply (3.3V or 5V)
 4. Check I2C pullup resistors (usually 4.7kΩ on SCD-30 board)
 
@@ -470,30 +469,30 @@ Expected output: `Found device at 0x61` (SCD-30)
 4. Check if ADC readings exceed 3.3V (damage if so!)
 
 ### Issue 4: Watchdog Resets System
-**Symptoms**: System reboots unexpectedly every 8 seconds
+**Symptoms**: System reboots unexpectedly every 30 seconds
 **Causes**:
 - Blocking code (e.g., infinite loop in sensor read)
 - Firebase timeout too long
-- Missing `feedWatchdog()` calls
+- Missing watchdog feed in long operations
 
 **Solutions**:
 1. Check Serial Monitor for "Watchdog reset" message
-2. Add more `feedWatchdog()` calls in long operations
+2. Ensure watchdog is fed regularly in long operations
 3. Reduce Firebase timeout
-4. Temporarily disable WDT for debugging (set WDT_ENABLED false)
+4. Check for infinite loops or blocking code
 
 ### Issue 5: Low Memory Warnings
 **Symptoms**: "Low memory detected!" in Serial Monitor
 **Causes**:
-- Too much data buffering
+- Too much data buffering in SPIFFS
 - Memory leaks in Firebase library
 - Large JSON documents
 
 **Solutions**:
-1. Reduce MAX_BUFFERED_READINGS (currently 100)
-2. Flush SD buffer more frequently
+1. Reduce MAX_BUFFERED_READINGS (currently 500)
+2. Flush SPIFFS buffer more frequently
 3. Restart system periodically (daily auto-reboot)
-4. Check for memory leaks with heap monitoring
+4. Check for memory leaks with heap monitoring (ESP32 has 520KB SRAM)
 
 ---
 
@@ -525,6 +524,7 @@ If you encounter problems not covered here:
 
 ---
 
-**Last Updated**: December 15, 2025
-**Firmware Version**: v1.0
+**Last Updated**: December 31, 2025
+**Firmware Version**: v2.0.0-dev
+**Platform**: ESP32-WROOM-32E
 **Author**: GreenOS Development Team
