@@ -16,13 +16,13 @@
 
 ---
 
-## 📖 Overview
+##  Overview
 
 **GreenOS** is a comprehensive greenhouse automation platform designed for precision environmental management. Built on the **ESP32-WROOM-32E** microcontroller and powered by **Firebase** and **Google Cloud Platform**, GreenOS delivers industrial-grade reliability with a focus on **safe-fail operation**, **offline resilience**, and **real-time responsiveness**.
 
 The system integrates advanced sensor fusion, predictive analytics, and automated climate control to create optimal growing conditions while maintaining robust safety protocols.
 
-> **📦 Looking for the Arduino UNO Q version?**  
+> ** Looking for the Arduino UNO Q version?**  
 > The original Arduino UNO Q codebase is preserved in the [`v1.0-uno-q`](https://github.com/secretengineer/GreenOS/releases/tag/v1.0-uno-q) release and [`arduino-uno-q`](https://github.com/secretengineer/GreenOS/tree/arduino-uno-q) branch.
 
 | Attribute | Details |
@@ -37,7 +37,7 @@ The system integrates advanced sensor fusion, predictive analytics, and automate
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 ### 🔧 Edge Intelligence (ESP32-WROOM-32E)
 - **Dual-Core Processing** — FreeRTOS task management across two Xtensa LX6 cores at 240MHz
@@ -53,20 +53,20 @@ The system integrates advanced sensor fusion, predictive analytics, and automate
 - **Emergency Protocols** — Automated responses to critical conditions with multi-tier alert system
 - **Gradual Adjustments** — Warning-level responses provide smooth environmental transitions
 
-### ☁️ Cloud Integration & Analytics
+###  Cloud Integration & Analytics
 - **Real-time Synchronization** — Firebase Firestore provides live data visibility
 - **Historical Analysis** — BigQuery enables long-term trend analysis and ML model training
 - **Prioritized Alerting** — Multi-level alert system (ULTRA → HIGH → MEDIUM → LOW)
 - **Comprehensive Logging** — Audit trail of all system actions and environmental events
 
-### 📱 User Experience
+###  User Experience
 - **Diagnostic Interface** — Serial commands for real-time debugging and monitoring
 - **Web Dashboard** — Real-time gauges, charts, and controls (React + Vite)
 - **Responsive Design** — Professional UI adapts to desktop, tablet, and mobile
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 GreenOS is a hybrid edge-cloud system combining immediate local responsiveness with scalable cloud analytics.
 
@@ -118,7 +118,7 @@ GreenOS is a hybrid edge-cloud system combining immediate local responsiveness w
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 GreenOS/
@@ -180,14 +180,14 @@ GreenOS/
 ```
 
 **Implementation Status:**
-- ✅ **Firmware**: Production-ready ESP32 code with FreeRTOS
-- 🔨 **Cloud Functions**: Partial implementation, Firebase integration active
-- 📋 **Web UI**: Structure in place, components being developed
-- 📚 **Documentation**: Comprehensive guides complete
+-  **Firmware**: Production-ready ESP32 code with FreeRTOS
+-  **Cloud Functions**: Partial implementation, Firebase integration active
+-  **Web UI**: Structure in place, components being developed
+-  **Documentation**: Comprehensive guides complete
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -284,7 +284,7 @@ You should see:
 
 ---
 
-## 🔌 Hardware Requirements
+##  Hardware Requirements
 
 ### Minimum Setup (Testing)
 
@@ -398,7 +398,7 @@ Output Voltage = 5V × (20kΩ / 30kΩ) = 3.33V (safe for ESP32)
 
 ---
 
-## ⚙️ Configuration Reference
+##  Configuration Reference
 
 ### Sensor Thresholds (config.h)
 
@@ -447,7 +447,7 @@ NTP_SYNC_INTERVAL        3600000    // 1 hour - time sync
 
 ---
 
-## 🛡️ Safety Features
+##  Safety Features
 
 ### Finite State Machine
 
@@ -518,7 +518,7 @@ If any task becomes unresponsive, the ESP32 will automatically restart.
 
 ---
 
-## 📊 Data Flow
+##  Data Flow
 
 ### Multi-Tier Storage Architecture
 
@@ -596,7 +596,7 @@ lib_deps =
 
 ---
 
-## 📚 Documentation
+##  Documentation
 
 Detailed documentation is available in the `Docs/` folder:
 
@@ -609,9 +609,9 @@ Detailed documentation is available in the `Docs/` folder:
 
 ---
 
-## 📈 Project Roadmap
+##  Project Roadmap
 
-### ✅ Phase 1: Hardware Interface (Complete)
+###  Phase 1: Hardware Interface (Complete)
 - [x] ESP32 platform migration from Arduino UNO Q
 - [x] FreeRTOS dual-core task management
 - [x] Sensor integration (SCD-30, MQ135, Modbus RS485)
@@ -621,20 +621,20 @@ Detailed documentation is available in the `Docs/` folder:
 - [x] Safety interlocks and emergency protocols
 - [x] Comprehensive documentation
 
-### 🔨 Phase 2: Cloud Integration (In Progress)
+###  Phase 2: Cloud Integration (In Progress)
 - [x] Firebase Firestore real-time sync
 - [x] Firebase Authentication
 - [ ] Cloud Functions for alerts and processing
 - [ ] BigQuery data pipeline
 - [ ] Historical data analysis tools
 
-### 📋 Phase 3: User Interfaces (Planned)
+###  Phase 3: User Interfaces (Planned)
 - [ ] Web dashboard (React + Vite)
 - [ ] Real-time gauges and charts
 - [ ] Mobile app (iOS/Android)
 - [ ] Push notification system
 
-### 📋 Phase 4: Advanced Features (Future)
+###  Phase 4: Advanced Features (Future)
 - [ ] Predictive analytics and forecasting
 - [ ] Camera integration and plant health monitoring
 - [ ] Multi-greenhouse management
@@ -643,7 +643,7 @@ Detailed documentation is available in the `Docs/` folder:
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 GreenOS is open-source and welcomes contributions! Areas where help is needed:
 
@@ -665,13 +665,13 @@ GreenOS is open-source and welcomes contributions! Areas where help is needed:
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 Built with:
 - [Espressif ESP32](https://www.espressif.com/) — Microcontroller platform
@@ -685,7 +685,7 @@ Special thanks to the open-source community for libraries, tools, and inspiratio
 
 ---
 
-## 📞 Contact
+##  Contact
 
 **Pat Ryan**  
 📧 [pat@patryan.com](mailto:pat@patryan.com)  
