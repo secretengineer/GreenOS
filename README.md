@@ -1,196 +1,317 @@
 # GreenOS: Intelligent Greenhouse Controller
 
+<div align="center">
+
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-in%20development-yellow)
-![Platform](https://img.shields.io/badge/platform-ESP32--WROOM--32E%20%7C%20Firebase%20%7C%20GCP-blue)
-![Firmware](https://img.shields.io/badge/firmware-v2.0--dev-orange)
+![Status](https://img.shields.io/badge/status-active%20development-brightgreen)
+![Platform](https://img.shields.io/badge/platform-ESP32--WROOM--32E-blue)
+![Firmware](https://img.shields.io/badge/firmware-v2.0.0--dev-orange)
+![Firebase](https://img.shields.io/badge/backend-Firebase%20%7C%20GCP-yellow)
+
+**An open-source, production-ready intelligent greenhouse control system**
+
+[Getting Started](#-getting-started) • [Hardware Setup](#-hardware-requirements) • [Documentation](#-documentation) • [Contributing](#-contributing)
+
+</div>
+
+---
+
+## 📖 Overview
+
+**GreenOS** is a comprehensive greenhouse automation platform designed for precision environmental management. Built on the **ESP32-WROOM-32E** microcontroller and powered by **Firebase** and **Google Cloud Platform**, GreenOS delivers industrial-grade reliability with a focus on **safe-fail operation**, **offline resilience**, and **real-time responsiveness**.
+
+The system integrates advanced sensor fusion, predictive analytics, and automated climate control to create optimal growing conditions while maintaining robust safety protocols.
 
 > **📦 Looking for the Arduino UNO Q version?**  
 > The original Arduino UNO Q codebase is preserved in the [`v1.0-uno-q`](https://github.com/secretengineer/GreenOS/releases/tag/v1.0-uno-q) release and [`arduino-uno-q`](https://github.com/secretengineer/GreenOS/tree/arduino-uno-q) branch.
 
-## 📖 Project Overview
-
-**GreenOS** is an open-source, production-ready intelligent greenhouse control system designed for precision environmental management. Built on the **ESP32-WROOM-32E** platform and powered by **Firebase** and **Google Cloud Platform**, GreenOS delivers industrial-grade reliability with a focus on safe-fail operation, offline resilience, and real-time responsiveness.
-
-This comprehensive system integrates advanced sensor fusion, predictive analytics, and automated climate control to create optimal growing conditions while maintaining robust safety protocols. Designed for the demanding environment of Denver, Colorado (elevation 5,280 ft), GreenOS adapts to your local conditions while providing professional-grade monitoring and control capabilities.
-
-| **Project Name** | GreenOS |
-| :--- | :--- |
-| **Domain** | [`https://greenos.app`](https://greenos.app) |
-| **Greenhouse Spec** | 325 cu. ft. greenhouse in Denver, CO (5,280 ft elevation) |
+| Attribute | Details |
+|:---|:---|
+| **Project** | GreenOS |
+| **Domain** | [greenos.app](https://greenos.app) |
 | **Platform** | ESP32-WROOM-32E (Dual-core Xtensa LX6 @ 240MHz, WiFi + Bluetooth) |
-| **Development Stage** | ESP32 migration in progress |
-| **Philosophy** | Safe-fail by design, data-driven decisions, offline-first operation, transparent monitoring |
+| **Framework** | PlatformIO + Arduino Framework |
+| **Backend** | Firebase (Firestore, Cloud Functions, Authentication) |
+| **Target Environment** | 325 cu. ft. greenhouse in Denver, CO (5,280 ft elevation) |
+| **Philosophy** | Safe-fail by design • Data-driven decisions • Offline-first operation |
 
 ---
 
-## 🚀 Core Vision
-
-GreenOS transforms greenhouse management by combining edge computing intelligence with cloud-scale analytics. The system operates on a fundamental principle: **plant safety first**. Every decision, from sensor placement to emergency protocols, prioritizes the health and protection of your plants through redundant monitoring, automatic failover, and offline-resilient operation.
-
-Unlike consumer IoT devices that fail silently when connectivity drops, GreenOS is designed as an **offline-first system**. The Arduino UNO Q edge controller maintains full operational capability without internet access, buffering data locally and executing critical safety protocols autonomously. When connectivity returns, data syncs seamlessly to the cloud for analysis and long-term storage.
-
 ## ✨ Key Features
 
-### **Edge Intelligence (ESP32-WROOM-32E)**
-*   **Multi-Sensor Fusion:** Integrates NDIR CO2 (SCD-30), air quality (MQ135), and Modbus RS485 soil sensors (EC, pH, moisture, NPK) with altitude compensation for Denver's elevation
-*   **Hardware Watchdog Timer:** Automatic recovery prevents firmware hangs and ensures continuous operation
-*   **Finite State Machine:** Predictable system behavior through well-defined states (BOOT → SENSOR_INIT → NORMAL_OPERATION → EMERGENCY/SAFE_MODE)
-*   **Sensor Health Monitoring:** Real-time error rate tracking, validation, and fallback to last known good values
-*   **Offline Data Buffering:** SPIFFS/SD card storage maintains complete operational history during network outages
-*   **ADC Calibration System:** Multi-point calibration with temperature compensation ensures measurement accuracy
+### 🔧 Edge Intelligence (ESP32-WROOM-32E)
+- **Dual-Core Processing** — FreeRTOS task management across two Xtensa LX6 cores at 240MHz
+- **Multi-Sensor Fusion** — Integrates NDIR CO2 (SCD-30), air quality (MQ135), and Modbus RS485 soil sensors (EC, pH, moisture, NPK)
+- **Hardware Watchdog Timer** — Automatic recovery prevents firmware hangs with 30-second timeout
+- **Finite State Machine** — Predictable system behavior through well-defined states
+- **Offline Data Buffering** — SPIFFS storage maintains operational history during network outages
+- **OTA Updates** — Over-the-air firmware updates for remote deployments
 
-### **Automated Climate Control**
-*   **Safety Interlocks:** Prevents dangerous actuator combinations (e.g., simultaneous heating and exhaust ventilation)
-*   **Duty Cycle Management:** Protects equipment through minimum cycle times and maximum runtime limits
-*   **Emergency Protocols:** Automated responses to critical conditions (low temp → dual heater activation, high temp → full cooling, security breach → alarm)
-*   **Gradual Adjustments:** Warning-level responses provide smooth environmental transitions
-*   **Manual Override:** Physical controls and web interface allow immediate user intervention
+### 🌡️ Automated Climate Control
+- **Safety Interlocks** — Prevents dangerous actuator combinations (e.g., simultaneous heating and exhaust ventilation)
+- **Duty Cycle Management** — Protects equipment through minimum cycle times and maximum runtime limits
+- **Emergency Protocols** — Automated responses to critical conditions with multi-tier alert system
+- **Gradual Adjustments** — Warning-level responses provide smooth environmental transitions
 
-### **Cloud Integration & Analytics**
-*   **Real-time Synchronization:** Firebase Firestore provides live data visibility across all interfaces
-*   **Historical Analysis:** BigQuery enables long-term trend analysis, seasonal comparisons, and ML model training
-*   **Prioritized Alerting:** Multi-level alert system (ULTRA-HIGH → HIGH → MEDIUM → LOW) via Firebase Cloud Messaging
-*   **Audit Trail:** Comprehensive logging of all system actions, user commands, and environmental events
-*   **Predictive Insights:** Machine learning models forecast conditions and optimize resource usage (future enhancement)
+### ☁️ Cloud Integration & Analytics
+- **Real-time Synchronization** — Firebase Firestore provides live data visibility
+- **Historical Analysis** — BigQuery enables long-term trend analysis and ML model training
+- **Prioritized Alerting** — Multi-level alert system (ULTRA → HIGH → MEDIUM → LOW)
+- **Comprehensive Logging** — Audit trail of all system actions and environmental events
 
-### **User Experience**
-*   **Diagnostic Interface:** Built-in serial commands ('s' = sensors, 'h' = health, 'c' = calibrate) for real-time debugging
-*   **Web Dashboard:** Real-time gauges, charts, and controls accessible from any device
-*   **Mobile App:** Push notifications and remote monitoring on iOS/Android (planned)
-*   **Responsive Design:** Professional UI adapts to desktop, tablet, and mobile screens
+### 📱 User Experience
+- **Diagnostic Interface** — Serial commands for real-time debugging and monitoring
+- **Web Dashboard** — Real-time gauges, charts, and controls (React + Vite)
+- **Responsive Design** — Professional UI adapts to desktop, tablet, and mobile
 
 ---
 
 ## 🏗️ System Architecture
 
-The GreenOS architecture is a hybrid edge-cloud system, combining the immediate responsiveness of the Arduino UNO Q with the scalable backend services of Firebase and Google Cloud.
+GreenOS is a hybrid edge-cloud system combining immediate local responsiveness with scalable cloud analytics.
 
-```mermaid
-graph TD
-    subgraph Edge["Greenhouse - Edge Device"]
-        UNO["Arduino UNO Q<br/>(Edge Controller)"]
-        Sensors["Environmental Sensors<br/>SCD-30, MQ135, Modbus"]
-        Actuators["Actuators<br/>Heaters, Fans, Pumps"]
-        UNO --> Sensors
-        UNO --> Actuators
-    end
-
-    subgraph Cloud["Firebase & Google Cloud Platform"]
-        Firestore["Cloud Firestore<br/>(Real-time Data)"]
-        Functions["Cloud Functions<br/>(Backend Logic)"]
-        Auth["Firebase Auth<br/>(Security)"]
-        FCM["Firebase Cloud Messaging<br/>(Alerts)"]
-        Storage["Cloud Storage<br/>(Images/Logs)"]
-        BigQuery["BigQuery<br/>(Historical Data)"]
-        VertexAI["Vertex AI<br/>(ML Models)"]
-        SecretManager["Secret Manager<br/>(Credentials)"]
-    end
-
-    subgraph Frontend["User Interfaces"]
-        WebApp["Web Dashboard<br/>(React + Vite)"]
-        MobileApp["Mobile App<br/>(iOS/Android)"]
-    end
-
-    UNO <-->|WiFi/HTTPS| Firestore
-    UNO <-->|API Calls| Functions
-    UNO -->|Upload Logs| Storage
-    
-    Firestore <-->|Real-time Sync| WebApp
-    Firestore <-->|Real-time Sync| MobileApp
-    
-    Functions <-->|REST API| WebApp
-    Functions <-->|REST API| MobileApp
-    
-    Auth -.->|Authentication| WebApp
-    Auth -.->|Authentication| MobileApp
-    
-    FCM -.->|Push Alerts| WebApp
-    FCM -.->|Push Alerts| MobileApp
-    
-    Firestore -->|Data Export| BigQuery
-    BigQuery -->|Training Data| VertexAI
-    SecretManager -.->|API Keys| Functions
-    Functions -->|Trigger Alerts| FCM
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           GREENHOUSE (Edge Device)                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                        ESP32-WROOM-32E                               │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐   │   │
+│  │  │ Core 0       │  │ Core 1       │  │ Peripherals              │   │   │
+│  │  │ Network Task │  │ Sensor Task  │  │ • I2C (SCD-30)           │   │   │
+│  │  │ Firebase Sync│  │ Actuator Task│  │ • RS485 (Soil Sensor)    │   │   │
+│  │  │ OTA Updates  │  │ Emergency    │  │ • ADC (MQ135, Light)     │   │   │
+│  │  └──────────────┘  └──────────────┘  │ • GPIO (Relays, PIR)     │   │   │
+│  │                                       │ • SPI (SD Card)          │   │   │
+│  └───────────────────────────────────────┴──────────────────────────────┘   │
+│                                     │                                        │
+│         ┌───────────────────────────┼───────────────────────────┐           │
+│         ▼                           ▼                           ▼           │
+│  ┌─────────────┐           ┌─────────────┐            ┌────────────────┐   │
+│  │   Sensors   │           │  Actuators  │            │    Storage     │   │
+│  │ SCD-30 CO2  │           │ Heaters (2) │            │ SPIFFS/SD Card │   │
+│  │ MQ135 Air   │           │ Fans (2)    │            │ Offline Buffer │   │
+│  │ RS485 Soil  │           │ Pump        │            │ Config/Cals    │   │
+│  │ PIR Motion  │           │ Grow Lights │            └────────────────┘   │
+│  └─────────────┘           └─────────────┘                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     │ WiFi (2.4GHz 802.11 b/g/n)
+                                     │ HTTPS/TLS 1.2+
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        FIREBASE / GOOGLE CLOUD                              │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌─────────────┐  │
+│  │   Firestore   │  │    Cloud      │  │   Firebase    │  │  BigQuery   │  │
+│  │  (Real-time)  │  │   Functions   │  │     Auth      │  │ (Analytics) │  │
+│  └───────────────┘  └───────────────┘  └───────────────┘  └─────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           USER INTERFACES                                   │
+│           ┌───────────────────┐          ┌───────────────────┐             │
+│           │   Web Dashboard   │          │    Mobile App     │             │
+│           │   (React + Vite)  │          │   (iOS/Android)   │             │
+│           └───────────────────┘          └───────────────────┘             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 📂 Project Structure
+---
 
-```txt
-/GreenOS
-├── /Firmware                        # Arduino UNO Q Edge Controller (✅ Complete)
-│   ├── /src
-│   │   ├── main.cpp                 # FSM-based main controller with WDT and offline buffering
-│   │   ├── config.h                 # Hardware configuration, pin mappings, thresholds
-│   │   ├── sensor_manager.h/cpp     # Multi-sensor integration (SCD-30, MQ135, Modbus)
-│   │   ├── actuator_manager.h/cpp   # Safety-first actuator control with interlocks
-│   │   ├── firebase_comm.h/cpp      # Real-time Firebase synchronization
-│   │   └── anomaly_detection.h      # Local anomaly detection and emergency protocols
-│   └── /libraries                   # External Arduino libraries
+## 📂 Project Structure
+
+```
+GreenOS/
+├── Firmware/                         # ESP32 Firmware (PlatformIO)
+│   ├── platformio.ini               # Build configuration & dependencies
+│   ├── include/
+│   │   ├── config.h                 # Hardware pins, thresholds, WiFi credentials
+│   │   ├── config_template.h        # Template for config (safe to commit)
+│   │   ├── sensor_manager.h         # Sensor reading and validation
+│   │   ├── actuator_manager.h       # Relay control with safety interlocks
+│   │   ├── network_manager.h        # WiFi and Firebase communication
+│   │   └── data_logger.h            # SPIFFS/SD card data buffering
+│   ├── src/
+│   │   ├── main.cpp                 # FreeRTOS tasks, FSM, system initialization
+│   │   ├── sensor_manager.cpp       # SCD-30, MQ135, Modbus implementations
+│   │   ├── actuator_manager.cpp     # Safety logic, emergency responses
+│   │   ├── network_manager.cpp      # WiFi Manager, Firebase sync
+│   │   └── data_logger.cpp          # Offline buffering and CSV logging
+│   └── libraries/                   # External library overrides (if needed)
 │
-├── /CloudFunctions                  # Firebase Cloud Functions (🔨 In Progress)
-│   ├── /functions
-│   │   ├── index.js                 # Cloud function entry point
-│   │   ├── triggers.js              # Firestore triggers for alerts and processing
-│   │   ├── api.js                   # HTTP endpoints for historical data queries
-│   │   └── scheduled.js             # Periodic tasks (BigQuery export, weather API)
-│   └── package.json                 # Node.js dependencies
+├── CloudFunctions/                  # Firebase Cloud Functions
+│   ├── package.json                 # Node.js dependencies
+│   └── functions/
+│       ├── index.js                 # Function entry point
+│       ├── triggers.js              # Firestore triggers for alerts
+│       ├── api.js                   # REST API endpoints
+│       └── scheduled.js             # Periodic tasks (BigQuery export)
 │
-├── /WebUI                           # Web Application Frontend (📋 Planned)
-│   ├── /public
-│   │   ├── index.html               # Main HTML entry point
-│   │   └── firebase-messaging-sw.js # Service worker for push notifications
-│   ├── /src
-│   │   ├── /components              # Reusable UI components (charts, gauges, alerts)
-│   │   ├── /pages                   # Application pages (Dashboard, Settings, Logs)
-│   │   ├── App.jsx                  # React application root
-│   │   ├── config.js                # Firebase configuration
-│   │   └── index.css                # Global styles
+├── WebUI/                           # Web Application (React + Vite)
 │   ├── package.json                 # Frontend dependencies
-│   └── vite.config.js               # Vite build configuration
+│   ├── vite.config.js              # Build configuration
+│   └── src/
+│       ├── App.jsx                  # Application root
+│       ├── config.js                # Firebase configuration
+│       ├── components/              # Reusable UI components
+│       │   ├── Navbar.jsx
+│       │   ├── Sidebar.jsx
+│       │   ├── SensorGauge.jsx
+│       │   ├── SensorChart.jsx
+│       │   └── AlertList.jsx
+│       └── pages/                   # Application pages
+│           ├── Dashboard.jsx
+│           ├── Analytics.jsx
+│           ├── Alerts.jsx
+│           ├── Settings.jsx
+│           └── Login.jsx
 │
-├── /Docs                            # 📚 Comprehensive Documentation (✅ Complete)
-│   ├── QUICKSTART.md                # 30-minute getting started guide
-│   ├── HARDWARE_SETUP.md            # Detailed wiring diagrams and setup instructions
-│   ├── LIBRARIES.md                 # Arduino library requirements and installation
-│   ├── IMPLEMENTATION_SUMMARY.md    # Technical overview and design decisions
-│   ├── ArduinoUNO-Q-datasheet.pdf  # Arduino UNO Q hardware specifications
-│   └── RS485SoilMoisture*.pdf      # Modbus soil sensor datasheet
+├── Docs/                            # Documentation
+│   ├── QUICKSTART.md               # 30-minute getting started guide
+│   ├── HARDWARE_SETUP.md           # Wiring diagrams and hardware details
+│   ├── LIBRARIES.md                # Library requirements
+│   └── IMPLEMENTATION_SUMMARY.md   # Technical design decisions
 │
-└── /assets                          # Project assets and media
+├── assets/                          # Project assets and media
+├── firebase.json                    # Firebase project configuration
+├── firestore.rules                  # Firestore security rules
+├── firestore.indexes.json          # Firestore indexes
+└── storage.rules                    # Cloud Storage security rules
 ```
 
 **Implementation Status:**
-- ✅ **Firmware**: Production-ready with all sensors integrated
+- ✅ **Firmware**: Production-ready ESP32 code with FreeRTOS
 - 🔨 **Cloud Functions**: Partial implementation, Firebase integration active
 - 📋 **Web UI**: Structure in place, components being developed
 - 📚 **Documentation**: Comprehensive guides complete
 
 ---
 
-### 1. Arduino UNO Q (Edge Device)
+## 🚀 Getting Started
 
-The **Arduino UNO Q** serves as the intelligent edge controller, providing real-time environmental management with industrial-grade reliability. Built on the Renesas RA4M1 microcontroller (ARM Cortex-M4 @ 48MHz) with ESP32-S3 WiFi coprocessor, it combines processing power with robust connectivity.
+### Prerequisites
 
-**Hardware Specifications:**
-*   **Microcontroller:** Renesas RA4M1 (48 MHz ARM Cortex-M4)
-*   **ADC:** 12-bit SAR ADC (0-3.3V, ⚠️ NOT 5V tolerant!)
-*   **Connectivity:** WiFi (ESP32-S3), Ethernet-ready via W5100S
-*   **GPIO:** 3.3V logic levels (level shifters required for 5V sensors)
-*   **Watchdog:** Independent hardware watchdog with 8-second timeout
-*   **Power:** 5V @ 3A via USB-C, UPS-protected for uninterrupted operation
-*   **Development:** Arduino IDE 2.x (PlatformIO not supported)
+Before you begin, ensure you have the following:
 
-**Operational Intelligence:**
-*   **Finite State Machine:** Manages system lifecycle (BOOT → SENSOR_INIT → NETWORK_CONNECT → FIREBASE_AUTH → NORMAL_OPERATION)
-*   **Offline Resilience:** Full operation without internet, automatic data sync on reconnection
-*   **Memory Management:** Continuous heap monitoring, safe-mode entry on low memory conditions
-*   **Auto-Recovery:** Hardware watchdog prevents permanent firmware hangs
-*   **Diagnostic Access:** Serial command interface for real-time system inspection
+| Requirement | Version | Notes |
+|:---|:---|:---|
+| **PlatformIO** | Latest | VSCode extension or CLI |
+| **Python** | 3.8+ | Required by PlatformIO |
+| **Git** | Latest | For cloning the repository |
+| **USB Driver** | CP210x or CH340 | Depends on your ESP32 dev board |
 
-### 2. Sensors & Actuators (Hardware)
+### Quick Start (30 Minutes)
 
-GreenOS integrates professional-grade sensors optimized for greenhouse environments, with altitude compensation configured for Denver's 5,280 ft elevation.
+#### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/secretengineer/GreenOS.git
+cd GreenOS
+```
+
+#### Step 2: Install PlatformIO
+
+**Option A: VSCode Extension (Recommended)**
+1. Install [Visual Studio Code](https://code.visualstudio.com/)
+2. Install the [PlatformIO IDE extension](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide)
+3. Restart VSCode
+
+**Option B: CLI Installation**
+```bash
+pip install platformio
+```
+
+#### Step 3: Configure Credentials
+
+1. Copy the template configuration:
+   ```bash
+   cd Firmware/include
+   cp config_template.h config.h
+   ```
+
+2. Edit `config.h` with your credentials:
+   ```cpp
+   // WiFi Configuration
+   #define WIFI_SSID "YOUR_WIFI_NETWORK"
+   #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+   
+   // Firebase Configuration
+   #define FIREBASE_HOST "your-project.firebaseapp.com"
+   #define FIREBASE_API_KEY "your-api-key"
+   #define FIREBASE_PROJECT_ID "your-project-id"
+   ```
+
+> ⚠️ **Security Note:** Never commit `config.h` with real credentials. It's already in `.gitignore`.
+
+#### Step 4: Build and Upload
+
+**Using PlatformIO in VSCode:**
+1. Open the `Firmware` folder in VSCode
+2. Connect your ESP32 via USB
+3. Click the **PlatformIO: Upload** button (→ icon in status bar)
+
+**Using PlatformIO CLI:**
+```bash
+cd Firmware
+pio run -t upload
+```
+
+#### Step 5: Monitor Serial Output
+
+**VSCode:**
+Click **PlatformIO: Serial Monitor** in the status bar
+
+**CLI:**
+```bash
+pio device monitor
+```
+
+You should see:
+```
+╔════════════════════════════════════════════╗
+║   GreenOS - Intelligent Greenhouse         ║
+║   ESP32-WROOM-32E Firmware v2.0            ║
+╚════════════════════════════════════════════╝
+
+[INFO] ESP32 Chip Model: ESP32-D0WDQ6-V3 Rev 3
+[INFO] CPU Frequency: 240 MHz
+[INFO] Flash Size: 4 MB
+[INFO] Free Heap: 245768 bytes
+[OK] SPIFFS mounted: 12288 bytes used / 1441792 bytes total
+[INIT] Initializing subsystems...
+[INIT] Creating FreeRTOS tasks...
+```
+
+---
+
+## 🔌 Hardware Requirements
+
+### Minimum Setup (Testing)
+
+| Component | Model | Quantity | Purpose |
+|:---|:---|:---:|:---|
+| ESP32 Development Board | ESP32-WROOM-32E DevKitC | 1 | Main controller |
+| CO2/Climate Sensor | Adafruit SCD-30 | 1 | CO2, temperature, humidity |
+| USB-C Cable | Data-capable | 1 | Programming and power |
+| Breadboard + Jumpers | Standard | 1 set | Prototyping connections |
+
+### Full Production Setup
+
+| Component | Model | Quantity | Interface | Notes |
+|:---|:---|:---:|:---|:---|
+| **Microcontroller** | ESP32-WROOM-32E DevKitC | 1 | — | 4MB Flash, 520KB SRAM |
+| **CO2 Sensor** | Adafruit SCD-30 | 1 | I2C (0x61) | NDIR, ±30ppm accuracy |
+| **Air Quality** | MQ135 Module | 1 | Analog (ADC1) | Requires 48hr preheat |
+| **Soil Sensor** | S-Soil MT-02 (7-in-1) | 1 | Modbus RS485 | EC, pH, moisture, temp, NPK |
+| **RS485 Transceiver** | MAX485 Module | 1 | UART2 | For Modbus communication |
+| **Relay Board** | 6-Channel 5V Optoisolated | 1 | GPIO | 15A rating for AC loads |
+| **Motion Sensor** | HC-SR501 PIR | 1 | Digital GPIO | Security monitoring |
+| **SD Card Module** | SPI SD Card | 1 | SPI | Offline data buffering |
+| **Power Supply** | 5V 3A USB-C | 1 | USB-C | Main power |
+| **Soil Sensor Power** | 12V DC Adapter | 1 | Barrel jack | For RS485 soil sensor |
+| **UPS** | APC or similar | 1 | GPIO monitoring | Power failure detection |
+
+### Sensors & Actuators Summary
 
 **Environmental Monitoring:**
 
@@ -199,233 +320,366 @@ GreenOS integrates professional-grade sensors optimized for greenhouse environme
 | **CO2/Climate** | Adafruit SCD-30 | I2C (0x61) | CO2 (ppm), Temperature (°C), Humidity (%) | NDIR sensor with altitude compensation, auto-calibration enabled |
 | **Air Quality** | MQ135 | Analog ADC | Air quality (ppm) | Requires 48-hour preheat, voltage divider (5V→3.3V) mandatory |
 | **Soil Monitor** | S-Soil MT-02 | Modbus RTU RS485 | EC (mS/cm), pH, Moisture (%), Temp (°C), N-P-K (mg/kg) | Industrial-grade probe, IP68 waterproof |
-| **Motion** | PIR Sensor | Digital GPIO | Motion detection | Security monitoring, off-hours alerts |
+| **Motion** | HC-SR501 PIR | Digital GPIO | Motion detection | Security monitoring, off-hours alerts |
 | **Power** | UPS Monitor | Digital GPIO | Power status | Triggers power-saving mode on mains failure |
 
 **Actuator Control (5V Optoisolated Relays, 15A Rating):**
 
 | Actuator | Power | Control Logic | Safety Features |
 |----------|-------|---------------|-----------------|
-| **Primary Heater** | 1500W @ 120VAC | PWM-capable relay | Interlock with exhaust fan, duty cycle limiting |
+| **Primary Heater** | 1500W @ 120VAC | Relay control | Interlock with exhaust fan, duty cycle limiting |
 | **Secondary Heater** | 1500W @ 120VAC | Backup heating | Auto-activation on primary failure or extreme cold |
 | **Exhaust Fan** | Variable | Speed-controlled relay | Cannot run simultaneously with heaters |
 | **Circulation Fan** | Variable | Always-on capable | Distributes heat/cool air evenly |
 | **Irrigation Pump** | 120VAC | Timed relay | 10-minute maximum runtime protection |
 | **Grow Lights** | LED Array | Scheduled relay | Automated day/night cycles |
 
-**Critical Design Note:** All sensors interfacing with 3.3V GPIO pins require level shifting or voltage dividers. The MQ135 analog output (0-5V) uses a resistor divider (R1=10kΩ, R2=20kΩ) to safely scale to 3.3V maximum
-    *   **VWC:** Capacitive soil moisture sensors.
-    Safe-Fail Operation Philosophy
+### Wiring Diagram (ESP32 Pin Assignments)
 
-GreenOS is architected on the principle that **failure modes must be safe by default**. Unlike consumer IoT devices that simply stop functioning when problems occur, GreenOS implements graduated responses:
+```
+ESP32-WROOM-32E Pin Assignments
+═══════════════════════════════════════════════════════════════════════════
 
-1. **Normal Operation:** All systems functioning, cloud-synced
-2. **Degraded Mode:** Sensor failures detected, system uses last known good values
-3. **Safe Mode:** Critical failures, maintains only essential life-support (heating in winter)
-4. **Emergency Mode:** Immediate threat to plants, executes protective protocols automatically
+I2C Bus (SCD-30 CO2 Sensor)
+├── GPIO 21 (SDA) ──────────────── SCD-30 SDA
+└── GPIO 22 (SCL) ──────────────── SCD-30 SCL
 
-### Internet Connectivity & Offline Resilience
+UART2 / Modbus RS485 (Soil Sensor)
+├── GPIO 16 (RX2) ──────────────── MAX485 RO (Receiver Output)
+├── GPIO 17 (TX2) ──────────────── MAX485 DI (Driver Input)
+└── GPIO 4  (DE/RE) ────────────── MAX485 DE + RE (Direction Control)
 
-**WiFi-First Architecture:**
-*   **Primary:** 2.4GHz WiFi (ESP32-S3 coprocessor, does not support 5GHz)
-*   **Connection Management:** Non-blocking connection with 10-second timeout
-*   **Auto-Reconnection:** 30-second intervals, continues operation during outages
-*   **Signal Monitoring:** RSSI tracking, logs connection quality
-*   **Future Enhancement:** Ethernet failover via W5100S module (hardware-ready)
+Analog Sensors (ADC1 Only - ADC2 conflicts with WiFi)
+├── GPIO 34 (ADC1_CH6) ─────────── MQ135 Analog Out (via voltage divider)
+├── GPIO 35 (ADC1_CH7) ─────────── Backup VWC Sensor
+├── GPIO 32 (ADC1_CH4) ─────────── Sound Level Sensor
+└── GPIO 33 (ADC1_CH5) ─────────── Light Level Sensor
 
-**Offline Operation:**
-GreenOS maintains full autonomous operation without internet connectivity:
-*   **Local Data Buffering:** SD card stores up to 100 readings in RAM, unlimited on SD
-*   **CSV Format:** Human-readable logs for easy offline analysis
-*   **Automatic Sync:** Uploads buffered data when connection restored
-*   **Emergency Protocols:** Execute locally without cloud confirmation
-*   **Alert Logging:** Saves alerts to SD card for post-reconnection upload
+Digital I/O
+├── GPIO 27 ────────────────────── PIR Motion Sensor (INPUT)
+├── GPIO 26 ────────────────────── UPS Status (INPUT)
+├── GPIO 25 ────────────────────── Buzzer Alarm (OUTPUT, DAC)
+└── GPIO 2  ────────────────────── Status LED (OUTPUT, built-in)
 
-### Power Management & UPS Integration
+SPI Bus (SD Card)
+├── GPIO 5  (CS)  ──────────────── SD Card CS
+├── GPIO 23 (MOSI) ─────────────── SD Card MOSI
+├── GPIO 19 (MISO) ─────────────── SD Card MISO
+└── GPIO 18 (SCK)  ─────────────── SD Card SCK
 
-**Power Supply Architecture:**
-*   **Primary:** 120VAC mains via multiple isolated 5V DC adapters
-*   **Arduino UNO Q:** Dedicated 5V/3A USB-C supply
-*   **Sensors:** Isolated 5V rail (prevents sensor noise from affecting MCU)
-*   **Actuators:** 5V relay board with optoisolation (120VAC loads isolated from logic)
-*   **Soil Sensor:** Dedicated 12-24V DC supply (Modbus RS485 sensor requirement)
+Actuator Relay Outputs (Active LOW)
+├── GPIO 13 ────────────────────── Primary Heater Relay
+├── GPIO 14 ────────────────────── Secondary Heater Relay
+├── GPIO 12 ────────────────────── Exhaust Fan Relay
+├── GPIO 15 ────────────────────── Circulation Fan Relay
+├── GPIO 27* ───────────────────── Irrigation Pump Relay (alt pin)
+└── GPIO 26* ───────────────────── Grow Lights Relay (alt pin)
 
-**UPS Monitoring & Response:**
-*   **Status Detection:** Digital GPIO monitors UPS mains/battery status
-*   **Power Failure Protocol:** 
-  - Disables high-power actuators (heaters, grow lights)
-  - Maintains critical monitoring and minimal ventilation
-  - Logs power event to SD card
-  - Sends alert when connectivity available
-*   **Battery Runtime:** Estimated 4-6 hours on UPS for monitoring only
+* Alternative pins to avoid strapping pin conflicts
 
-### Anomaly Detection & Emergency Protocols
+IMPORTANT NOTES:
+═══════════════════════════════════════════════════════════════════════════
+• ESP32 GPIO pins are 3.3V logic - DO NOT connect 5V signals directly!
+• ADC2 pins (GPIO 0, 2, 4, 12-15, 25-27) cannot be used when WiFi is active
+• Use ADC1 pins only (GPIO 32-39) for analog sensors with WiFi enabled
+• Strapping pins (GPIO 0, 2, 5, 12, 15) have boot-time functions - use carefully
+• MQ135 requires voltage divider (10kΩ/20kΩ) to scale 5V output to 3.3V
+```
 
-**Multi-Tier Alert System:**
+### MQ135 Voltage Divider Circuit
 
-| Priority | Conditions | Response Time | Actions |
-|----------|-----------|---------------|---------|
-| 🔴 **ULTRA** | Temp < 10°C (frost danger) | Immediate | Activate both heaters, disable cooling, alert sent |
-| 🔴 **ULTRA** | Temp > 35°C (heat stress) | Immediate | Full ventilation, disable heaters, disable grow lights |
-| 🟠 **HIGH** | Security breach (motion off-hours) | < 30 seconds | Activate lights, sound alarm, send alert with photo |
-### Current Security Implementation
+```
+MQ135 AOUT (5V) ────┬──── R1 (10kΩ) ──── GND
+                    │
+                    └──── R2 (20kΩ) ──── ESP32 GPIO34 (3.3V max)
 
-**Network Security:**
-*   **Encryption:** All cloud communications via HTTPS/TLS 1.2+
-*   **WiFi:** WPA2-Personal encryption (WPA3 when available)
-*   **Firebase Auth:** API key-based device authentication
-*   **Firestore Rules:** Read/write restrictions based on authentication
+Output Voltage = 5V × (20kΩ / 30kΩ) = 3.33V (safe for ESP32)
+```
 
-**Data Integrity:**
-*   **CRC32 Validation:** All EEPROM calibration data verified on load
-*   **Sensor Validation:** Sanity checks prevent invalid data propagation
-*   **Alert Verification:** Multi-sensor correlation reduces false positives
+---
 
-**Physical Security:**
-*   **Tamper Detection:** PIR motion sensor triggers off-hours alerts
-*   **Enclosure:** Weather-resistant housing protects electronics
-*   **UPS Protection:** Prevents data loss and maintains monitoring during outages
+## ⚙️ Configuration Reference
 
-### Production Security Enhancements (Roadmap)
+### Sensor Thresholds (config.h)
 
-**Credential Management:**
-*   **Current:** WiFi credentials and API keys in source code (acceptable for development/breadboard testing)
-*   **Planned:** 
-  - EEPROM-based credential storage (encrypted)
-  - Web-based provisioning portal (captive WiFi for initial setup)
-  - Firebase device tokens instead of API keys
-  - Google Cloud Secret Manager for cloud-side credentials
+All thresholds can be customized and are automatically synced from Firebase when connected:
 
-**Firmware Security:**
-*   **Planned:**
-  - Secure boot (cryptographic verification of firmware)
-  - Code signing for OTA updates
-### Quick Start (30 Minutes)
+```cpp
+// Temperature Thresholds (°C)
+TEMP_MIN             10.0    // Critical low - triggers emergency heating
+TEMP_MAX             35.0    // Critical high - triggers full cooling
+TEMP_OPTIMAL_MIN     18.0    // Optimal range minimum
+TEMP_OPTIMAL_MAX     24.0    // Optimal range maximum
+TEMP_FROST_ALERT      4.0    // Frost warning threshold
 
-Get your Arduino UNO Q running with GreenOS firmware:
+// Humidity Thresholds (%)
+HUMIDITY_MIN         40.0    // Minimum acceptable
+HUMIDITY_MAX         80.0    // Maximum acceptable
+HUMIDITY_OPTIMAL_MIN 50.0    // Optimal minimum
+HUMIDITY_OPTIMAL_MAX 70.0    // Optimal maximum
 
-1. **Install Development Environment**
-   - Download [Arduino IDE 2.x](https://www.arduino.cc/en/software)
-   - Install Arduino UNO R4 board support package
-   - Install required libraries (see `Docs/LIBRARIES.md`)
+// CO2 Thresholds (ppm)
+CO2_MIN             400.0    // Outdoor ambient
+CO2_MAX            1500.0    // Maximum for plant growth
+CO2_OPTIMAL_MIN     800.0    // Optimal minimum
+CO2_OPTIMAL_MAX    1200.0    // Optimal maximum
+CO2_DANGER         5000.0    // Dangerous for humans
 
-2. **Configure Hardware**
-   - Connect Arduino UNO Q via USB-C
-   - Wire SCD-30 sensor (minimum for testing)
-   - Optional: Add MQ135 with voltage divider, Modbus soil sensor
+// Soil Thresholds
+VWC_OPTIMAL_MIN      30.0    // Volumetric Water Content (%)
+VWC_OPTIMAL_MAX      50.0
+PH_OPTIMAL_MIN        6.0    // pH range
+PH_OPTIMAL_MAX        7.0
+EC_OPTIMAL_MIN        1.0    // Electrical Conductivity (mS/cm)
+EC_OPTIMAL_MAX        2.0
+```
 
-3. **Upload Firmware**
-   - Open `Firmware/src/main.cpp` in Arduino IDE
-   - Update WiFi credentials in `config.h`
-   - Click Upload (firmware compiles in ~2 minutes)
+### Timing Intervals
 
-4. **Verify Operation**
-   - Open Serial Monitor (115200 baud)
-   - Watch boot sequence and sensor initialization
-   - Press 's' to display sensor readings
-   - Press 'h' for sensor health report
+```cpp
+SENSOR_READ_INTERVAL        5000    // 5 seconds - sensor polling
+FIREBASE_SYNC_INTERVAL     60000    // 1 minute - cloud sync
+ANOMALY_CHECK_INTERVAL     10000    // 10 seconds - safety checks
+MODBUS_READ_INTERVAL       15000    // 15 seconds - soil sensor
+MEMORY_CHECK_INTERVAL      60000    // 1 minute - heap monitoring
+NTP_SYNC_INTERVAL        3600000    // 1 hour - time sync
+```
 
-**📖 Detailed Guides:**
-- **[QUICKSTART.md](Docs/QUICKSTART.md)** - Step-by-step first boot guide
-- **[HARDWARE_SETUP.md](Docs/HARDWARE_SETUP.md)** - Complete wiring diagrams and setup
-- **[LIBRARIES.md](Docs/LIBRARIES.md)** - Arduino library requirements
-- **[IMPLEMENTATION_SUMMARY.md](Docs/IMPLEMENTATION_SUMMARY.md)** - Technical deep-dive
+---
 
-### Hardware Requirements
+## 🛡️ Safety Features
 
-**Minimum Setup (Testing):**
-- Arduino UNO Q with USB-C cable
-- Adafruit SCD-30 CO2 sensor
-- 5V power supply
-- Computer with Arduino IDE 2.x
+### Finite State Machine
 
-**Full Production Setup:**
-- All minimum components, plus:
-- MQ135 air quality sensor + voltage divider components (R1=10kΩ, R2=20kΩ)
-- Modbus RS485 soil sensor (S-Soil MT-02)
-- MAX485 TTL-to-RS485 transceiver module
-- SD card module for offline buffering
-- 6-channel 5V relay board (optoisolated, 15A rating)
-- PIR motion sensor for security
-- UPS with status monitoring
-- Level shifter module (3.3V ↔ 5V) for I2C if needed
+GreenOS uses a robust state machine to ensure predictable behavior:
 
-**⚠️ Critical:** Arduino UNO Q uses 3.3V logic. Do not connect 5V signals directly to GPIO pins!
+```
+                              ┌─────────────────┐
+                              │   STATE_BOOT    │
+                              │  (Initialize)   │
+                              └────────┬────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │ STATE_WIFI_CONNECT│
+                              │  (Network Setup)│
+                              └────────┬────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │ STATE_SENSOR_INIT│
+                              │  (Sensor Setup) │
+                              └────────┬────────┘
+                                       │
+          ┌────────────────────────────┼────────────────────────────┐
+          │                            │                            │
+          ▼                            ▼                            ▼
+┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│ STATE_SAFE_MODE │◄────────│ STATE_NORMAL_OP │────────►│ STATE_EMERGENCY │
+│  (Minimal Ops)  │         │ (Full Operation)│         │ (Auto Response) │
+└─────────────────┘         └────────┬────────┘         └─────────────────┘
+                                     │
+                            ┌────────▼────────┐
+                            │ STATE_DEEP_SLEEP│
+                            │  (Power Save)   │
+                            └─────────────────┘
+```
 
-### Software Dependencies
+### Safety Interlocks
 
-**Arduino Libraries** (install via Library Manager):
-- Adafruit SCD30 (v1.0.11+)
-- ModbusMaster (v2.0.1+)
-- ArduinoJson (v6.21.3+, NOT v7)
-- Firebase ESP Client (v4.4.7+)
-- Adafruit BusIO (auto-installed)
+The firmware enforces these physical safety rules:
 
-**Development Tools:**
-- Arduino IDE 2.x or later
-- Arduino UNO R4 board support package
-- Serial terminal (built into Arduino IDE)
+| Rule | Purpose |
+|:---|:---|
+| Heaters + Exhaust Fan cannot run simultaneously | Prevents heat loss and wasted energy |
+| 60-second minimum between relay toggles | Prevents relay contact wear |
+| 10-minute maximum pump runtime | Prevents flooding |
+| Duty cycle tracking on heaters | Fire safety |
+| Heaters disabled during high temp emergency | Prevents overheating |
+| Grow lights disabled during high temp emergency | Reduces heat load |
 
-### Project Roadmap
+### Emergency Protocols
 
-**✅ Phase 1: Hardware Interface (Complete)**
-- ✅ Sensor integration (SCD-30, MQ135, Modbus RS485)
-- ✅ Hardware watchdog timer
-- ✅ Finite state machine architecture
-- ✅ Offline data buffering
-- ✅ Safety interlocks and emergency protocols
-- ✅ Comprehensive documentation
+| Priority | Condition | Automatic Response |
+|:---|:---|:---|
+| 🔴 **ULTRA** | Temp < 10°C (frost danger) | Activate both heaters, disable cooling, send alert |
+| 🔴 **ULTRA** | Temp > 35°C (heat stress) | Full ventilation, disable heaters, disable grow lights |
+| 🟠 **HIGH** | Security breach (motion) | Activate lights, sound alarm, send photo alert |
+| 🟠 **HIGH** | CO2 > 5000 ppm | Full ventilation, send danger alert |
+| 🟡 **MEDIUM** | Humidity out of range | Adjust ventilation gradually |
+| 🟡 **MEDIUM** | Soil moisture low | Queue irrigation cycle |
 
-**🔨 Phase 2: Cloud Integration (In Progress)**
-- 🔨 Firebase Cloud Functions for alerts
-- 🔨 BigQuery data pipeline
-- 📋 Historical data analysis tools
-- 📋 Machine learning anomaly detection
+### Watchdog Timer
 
-**📋 Phase 3: User Interfaces (Planned)**
-- 📋 Web dashboard (React + Vite)
-- 📋 Real-time gauges and charts
-- 📋 Mobile app (iOS/Android)
-- 📋 Push notification system
+```cpp
+#define WDT_TIMEOUT_SECONDS 30      // Hardware watchdog timeout
+#define TASK_WDT_TIMEOUT_S  10      // FreeRTOS task watchdog
+```
 
-**📋 Phase 4: Advanced Features (Future)**
-- 📋 OTA firmware updates
-- 📋 Predictive analytics and forecasting
-- 📋 Camera integration and plant identification
-- 📋 Multi-greenhouse management
-- 📋 Third-party integrations (weather APIs, etc.)
+If any task becomes unresponsive, the ESP32 will automatically restart.
 
-### Contributing
+---
+
+## 📊 Data Flow
+
+### Multi-Tier Storage Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          DATA FLOW                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Sensors ──► ESP32 RAM ──► SPIFFS Buffer ──► Firebase Firestore         │
+│              (5 sec)       (if offline)      (1 min sync)               │
+│                                                    │                     │
+│                                                    ▼                     │
+│                                            BigQuery Export              │
+│                                            (Historical)                  │
+│                                                                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│  STORAGE LAYER           │ RETENTION    │ PURPOSE                       │
+│ ─────────────────────────┼──────────────┼─────────────────────────────  │
+│  ESP32 RAM               │ Real-time    │ Current sensor values         │
+│  SPIFFS/SD Card          │ Until sync   │ Offline buffering (500 max)   │
+│  Cloud Firestore         │ 24-48 hours  │ Real-time dashboard           │
+│  BigQuery                │ Indefinite   │ Historical analysis, ML       │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Offline Resilience
+
+GreenOS maintains **full autonomous operation** without internet:
+
+- ✅ All sensors continue reading normally
+- ✅ Actuator control and safety interlocks remain active
+- ✅ Emergency protocols execute locally
+- ✅ Data buffered to SPIFFS (up to 500 readings)
+- ✅ Automatic sync when connectivity restores
+
+---
+
+## 🔧 PlatformIO Build Environments
+
+The project includes multiple build configurations in `platformio.ini`:
+
+```bash
+# Standard development build
+pio run -e esp32dev -t upload
+
+# Debug build with verbose logging
+pio run -e esp32dev_debug -t upload
+
+# OTA update (requires device on network)
+pio run -e esp32dev_ota -t upload
+```
+
+### Build Flags
+
+| Environment | Debug Level | Features |
+|:---|:---|:---|
+| `esp32dev` | Normal (3) | Production-ready |
+| `esp32dev_debug` | Verbose (5) | Extra logging, debug symbols |
+| `esp32dev_ota` | Normal (3) | Over-the-air upload enabled |
+
+### Library Dependencies
+
+All libraries are automatically managed by PlatformIO:
+
+```ini
+lib_deps = 
+    mobizt/Firebase Arduino Client Library for ESP8266 and ESP32@^4.4.14
+    sparkfun/SparkFun SCD30 Arduino Library@^1.0.20
+    adafruit/Adafruit Unified Sensor@^1.1.14
+    4-20ma/ModbusMaster@^2.0.1
+    bblanchon/ArduinoJson@^7.0.4
+    arduino-libraries/NTPClient@^3.2.1
+    tzapu/WiFiManager@^2.0.17
+```
+
+---
+
+## 📚 Documentation
+
+Detailed documentation is available in the `Docs/` folder:
+
+| Document | Description |
+|:---|:---|
+| [QUICKSTART.md](Docs/QUICKSTART.md) | 30-minute getting started guide |
+| [HARDWARE_SETUP.md](Docs/HARDWARE_SETUP.md) | Complete wiring diagrams and setup |
+| [LIBRARIES.md](Docs/LIBRARIES.md) | Library requirements and installation |
+| [IMPLEMENTATION_SUMMARY.md](Docs/IMPLEMENTATION_SUMMARY.md) | Technical design decisions |
+
+---
+
+## 📈 Project Roadmap
+
+### ✅ Phase 1: Hardware Interface (Complete)
+- [x] ESP32 platform migration from Arduino UNO Q
+- [x] FreeRTOS dual-core task management
+- [x] Sensor integration (SCD-30, MQ135, Modbus RS485)
+- [x] Hardware watchdog timer
+- [x] Finite state machine architecture
+- [x] SPIFFS offline data buffering
+- [x] Safety interlocks and emergency protocols
+- [x] Comprehensive documentation
+
+### 🔨 Phase 2: Cloud Integration (In Progress)
+- [x] Firebase Firestore real-time sync
+- [x] Firebase Authentication
+- [ ] Cloud Functions for alerts and processing
+- [ ] BigQuery data pipeline
+- [ ] Historical data analysis tools
+
+### 📋 Phase 3: User Interfaces (Planned)
+- [ ] Web dashboard (React + Vite)
+- [ ] Real-time gauges and charts
+- [ ] Mobile app (iOS/Android)
+- [ ] Push notification system
+
+### 📋 Phase 4: Advanced Features (Future)
+- [ ] Predictive analytics and forecasting
+- [ ] Camera integration and plant health monitoring
+- [ ] Multi-greenhouse management
+- [ ] Weather API integration
+- [ ] Machine learning anomaly detection
+
+---
+
+## 🤝 Contributing
 
 GreenOS is open-source and welcomes contributions! Areas where help is needed:
 
-- **Firmware:** Additional sensor drivers, optimization, battery mode
-- **Cloud Functions:** Advanced analytics, ML model integration
-- **Web UI:** Dashboard components, mobile responsiveness
-- **Documentation:** Tutorials, translations, case studies
-- **Testing:** Real-world greenhouse deployments, edge cases
+| Area | Skills Needed | Priority |
+|:---|:---|:---|
+| **Firmware** | C++, ESP32, FreeRTOS | High |
+| **Cloud Functions** | Node.js, Firebase, GCP | High |
+| **Web UI** | React, Vite, Chart.js | Medium |
+| **Documentation** | Technical writing | Medium |
+| **Testing** | Hardware testing, edge cases | Medium |
 
-See `CONTRIBUTING.md` for guidelines (coming soon).
+### How to Contribute
 
-### License
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+---
 
-### Support & Community
+## 📄 License
 
-**Documentation:** Comprehensive guides available in the `Docs/` folder
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-**Issues:** Report bugs or request features via GitHub Issues
+---
 
-**Discussions:** Ask questions and share experiences in GitHub Discussions
-
-### Acknowledgments
+## 🙏 Acknowledgments
 
 Built with:
-- [Arduino](https://www.arduino.cc/) - UNO Q platform
-- [Adafruit](https://www.adafruit.com/) - SCD-30 sensor and libraries
-- [Firebase](https://firebase.google.com/) - Real-time backend
-- [Google Cloud](https://cloud.google.com/) - Analytics and ML
+- [Espressif ESP32](https://www.espressif.com/) — Microcontroller platform
+- [PlatformIO](https://platformio.org/) — Build system and IDE
+- [Firebase](https://firebase.google.com/) — Real-time backend
+- [Google Cloud Platform](https://cloud.google.com/) — Analytics and ML
+- [Adafruit](https://www.adafruit.com/) — SCD-30 sensor and libraries
+- [SparkFun](https://www.sparkfun.com/) — SCD-30 Arduino library
 
 Special thanks to the open-source community for libraries, tools, and inspiration.
 
@@ -435,141 +689,15 @@ Special thanks to the open-source community for libraries, tools, and inspiratio
 
 **Pat Ryan**  
 📧 [pat@patryan.com](mailto:pat@patryan.com)  
-🌐 [https://greenos.app](https://greenos.app)
+🌐 [https://greenos.app](https://greenos.app)  
+🔗 [GitHub](https://github.com/secretengineer/GreenOS)
 
 ---
 
-**GreenOS** - Safe-fail by design. Offline-first operation. Production-ready reliability.
+<div align="center">
 
-*Last Updated: December 15, 2025 | Firmware Version: v1.0 | Status: Hardware interface complete, cloud integration in progress*ections
-  - Certificate pinning for Firebase endpoints
-  - VPN option for remote access to web dashboard
-  - Intrusion detection monitoring
+**GreenOS** — Safe-fail by design • Offline-first operation • Production-ready reliability
 
-**Audit & Compliance:**
-*   **Current:** Comprehensive logging of all system actions
-*   **Planned:**
-  - Cryptographic audit log signing
-  - Tamper-evident log storage
-  - Compliance with agricultural data standards
-*   **Low Temperature:** Dual heater activation + circulation fan
-*   **High Temperature:** Maximum ventilation + heater shutoff + grow light disable
-*   **Water Leak:** Immediate irrigation pump shutoff
-*   **Security Breach:** All lights on + alarm activation
-*   **Power Failure:** UPS mode (minimal power draw, critical monitoring only)
+*Last Updated: December 31, 2025 | Firmware v2.0.0-dev | Platform: ESP32-WROOM-32E*
 
-**Safety Interlocks:**
-The firmware enforces physical safety rules to prevent equipment damage:
-*   Heaters and exhaust fans cannot run simultaneously (prevents heat loss)
-*   Minimum 60-second delay between actuator state changes (prevents relay wear)
-*   Maximum 10-minute continuous pump runtime (prevents flooding)
-*   Duty cycle tracking prevents excessive heater operation (fire safety)
-
-### Data Management & Logging
-
-**Multi-Tier Data Architecture:**
-
-1. **Edge Storage (Arduino UNO Q):**
-   - Real-time sensor readings (5-second intervals)
-   - Circular buffer: 100 readings in RAM (~4KB)
-   - SD card: Unlimited CSV storage during offline periods
-   - Alert logs: Critical events stored locally
-
-2. **Cloud Firestore (Real-time):**
-   - Recent data: Last 24-48 hours
-   - Live dashboard updates
-   - User configuration and thresholds
-   - System state and health metrics
-   - Purpose: Low-latency access for web/mobile UI
-
-3. **BigQuery (Historical):**
-   - Long-term retention: Indefinite
-   - Full sensor history for trend analysis
-   - Seasonal comparisons and yearly patterns
-   - Machine learning training datasets
-   - Purpose: Advanced analytics and reporting
-
-**Data Synchronization:**
-*   **Online:** Firebase sync every 60 seconds
-*   **Offline:** Buffered to SD card, sync on reconnection
-*   **Conflict Resolution:** Edge device is source of truth for sensor data
-*   **Data Integrity:** CRC32 checksums on EEPROM calibration data
-
-### Firmware Updates & Maintenance
-
-**Configuration Updates:**
-*   **Method:** Firestore-based parameter sync
-*   **Scope:** Sensor thresholds, timing intervals, alert priorities
-*   **Speed:** Near-instant (< 5 seconds)
-*   **Safety:** Validated before application, rollback on failure
-
-**Firmware Updates (OTA - Future Enhancement):**
-*   **Status:** Deferred to Phase 2 per project requirements
-*   **Current Method:** USB cable upload via Arduino IDE
-*   **Planned Implementation:** Secure HTTPS download with cryptographic verification
-*   **Safety:** Rollback mechanism if new firmware fails health checks
----
-
-## 🛡️ Critical System Aspects
-
-### Internet Connectivity (UNO Q)
-*   **Primary:** Wi-Fi.
-*   **Fallback:** Ethernet option for enhanced reliability.
-*   **Stability:** Strategic AP placement, potential external antennas, and local data buffering.
-
-### Power Management
-*   **Main:** 120V AC.
-*   **Backup:** UPS for continuous operation.
-*   **Monitoring:** GreenOS monitors UPS status and triggers alerts/power-saving modes.
-
-### Anomaly Detection & Safe-Fail Systems
-*   **Rapid Response:** Local anomaly detection on UNO Q.
-*   **Prioritized Alerts:**
-    *   🔴 **ULTRA-HIGH:** Low temperature (catastrophic). Triggers immediate heating.
-    *   🟠 **HIGH:** Security breach, high temp/fire, critical equipment malfunction.
-    *   🟡 **MEDIUM:** Loud noise, minor equipment issues.
-*   **Automated Actions:** Configurable responses for critical events.
-
-### Data Management & Logging
-*   **Logging:** Comprehensive logs stored in Cloud Firestore.
-*   **Data Retention:** Indefinite retention in BigQuery.
-*   **UI Visualization:** Linear graphs leveraging Firestore (recent) and BigQuery (historical).
-
-### Over-The-Air (OTA) Updates
-*   **Configuration:** Parameters updated in Firestore, synced to UNO Q.
-*   **Firmware:** Secure download and application of new binaries with rollback mechanisms.
-
----
-
-## 💻 User Interfaces
-
-### Web Application (`https://greenos.app`)
-*   **Platform:** Firebase Hosting.
-*   **Features:** Secure login, professional dashboard, real-time gauges, charts, video feeds.
-*   **Technology:** HTML, CSS, JavaScript, Chart.js/D3.js.
-
-### Mobile Application (iOS/Android)
-*   **Platform:** Native or Cross-platform (Flutter/React Native).
-*   **Features:** Functional parity with web app, responsive UI.
-*   **Notifications:** Firebase Cloud Messaging.
-
----
-
-## 🔒 Security & Best Practices
-
-*   **Web Security:** SSL/TLS for all traffic.
-*   **Secure Credentials:** Managed via Google Cloud Secret Manager.
-*   **Firmware Hardening:** Secure boot, disabled debugging ports.
-*   **Network Security:** Firewall rules restricting outbound connections.
-*   **Physical Security:** Enclosure protection from environment.
-
----
-
-## 🏁 Getting Started
-
-*(Placeholder: Instructions on how to set up the project, contribute, or deploy GreenOS.)*
-
-## 📞 Contact
-
-**Pat Ryan**  
-📧 [pat@patryan.com](mailto:pat@patryan.com)
+</div>
