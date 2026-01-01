@@ -8,7 +8,7 @@
 [![Firmware](https://img.shields.io/badge/firmware-v2.0.0--dev-orange)]()
 [![Backend](https://img.shields.io/badge/backend-Firebase%20%7C%20GCP-yellow)]()
 
-## 🚀 Quick Start
+##  Quick Start
 
 Get your greenhouse running in 30 minutes:
 
@@ -25,7 +25,7 @@ pio run --target upload
 pio device monitor
 ```
 
-## ⚡ Key Features
+##  Key Features
 
 - **ESP32-WROOM-32E** — Dual-core 240MHz with WiFi + Bluetooth
 - **FreeRTOS** — Real-time task management across both cores
@@ -34,7 +34,7 @@ pio device monitor
 - **Firebase Integration** — Real-time data sync and cloud analytics
 - **Safety Interlocks** — Prevents dangerous actuator combinations
 
-## 📖 Documentation
+##  Documentation
 
 | Document | Description |
 |:--|:--|
@@ -44,7 +44,7 @@ pio device monitor
 | **[Libraries](Docs/LIBRARIES.md)** | PlatformIO dependencies |
 | **[Implementation](Docs/IMPLEMENTATION_SUMMARY.md)** | Technical architecture |
 
-## 🔧 Hardware
+##  Hardware
 
 | Component | Purpose |
 |:--|:--|
@@ -54,12 +54,12 @@ pio device monitor
 | S-Soil MT-02 | EC, pH, moisture, NPK (Modbus RS485) |
 | Relay Board | 6-channel actuator control (15A) |
 
-## 📞 Contact
+##  Contact
 
 **Pat Ryan**  
 📧 [pat@patryan.com](mailto:pat@patryan.com)
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
