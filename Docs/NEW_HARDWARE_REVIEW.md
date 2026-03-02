@@ -1,6 +1,3 @@
-User: Read the README.md file and review the entire codebase for this repo. I want to refactor this project using best practices and a better, more robust approach. I want to answer the questions: 1) What is the best platform for hardware development for the functionality I need for this project. 2) What would be the best backend solution for this application? Is Firebase the best option? 
-
-
 ## Full Codebase Review & Refactor Recommendations
 
 ### Current State Summary
