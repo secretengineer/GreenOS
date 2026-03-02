@@ -201,5 +201,3 @@ GreenOS is a 3-tier greenhouse automation system: ESP32 firmware (FreeRTOS, C++)
 ---
 
 **TL;DR:** The ESP32-WROOM-32E (or an ESP32-S3 upgrade) is the right hardware. Firebase is adequate but you should stop using Firestore as a time-series DB — keep it for real-time state only and route historical data to BigQuery or InfluxDB. The biggest wins come from fixing the existing architecture rather than replatforming entirely. 
-
-Completed: *Provide hardware platform analysis* (6/7)
