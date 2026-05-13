@@ -20,8 +20,8 @@ This document treats the migration as a **full hosting and platform decoupling e
 GreenOS should move to a **Hostinger VPS-backed architecture** with:
 
 - `greenOS.app` serving the web dashboard
-- `api.greenos.app` serving the application API
-- optional `mqtt.greenos.app` for device messaging if you adopt MQTT
+- `api.greenOS.app` serving the application API
+- optional `mqtt.greenOS.app` for device messaging if you adopt MQTT
 - PostgreSQL + TimescaleDB (recommended) for application and telemetry data
 - a Node.js backend replacing Firebase Cloud Functions
 - a staged firmware migration away from the Firebase Arduino client
@@ -46,7 +46,7 @@ This minimizes downtime and lets the greenhouse keep operating while the platfor
 
 ## Current Repository Findings
 
-## 1. Firebase Hosting is only one part of the dependency chain
+### Firebase Hosting is only one part of the dependency chain
 
 The repository currently depends on Firebase in at least four layers:
 
@@ -76,7 +76,7 @@ The repository currently depends on Firebase in at least four layers:
 - `Docs/GETTING_STARTED.md` instructs users to deploy both Hosting and Functions through Firebase
 - `README.md` still presents Firebase as the platform backend
 
-## 2. The codebase is not yet portable
+### The codebase is not yet portable
 
 Today, GreenOS is not simply “hosted on Firebase”; it is **architected around Firebase APIs**:
 
@@ -87,7 +87,7 @@ Today, GreenOS is not simply “hosted on Firebase”; it is **architected aroun
 
 Moving only the web files to Hostinger would change where the SPA is served from, but it would **not** remove Firebase as the control plane.
 
-## 3. Existing repo issues increase migration urgency
+### Existing repo issues increase migration urgency
 
 During review, the following issues stood out:
 
@@ -123,11 +123,11 @@ Shared hosting is acceptable only for a temporary frontend-only move. It is not 
 
 ### Public endpoints
 
-- `https://greenOS.app` or `https://greenos.app`
+- `https://greenOS.app`
   - serves the React dashboard
-- `https://api.greenos.app`
+- `https://api.greenOS.app`
   - serves REST and/or WebSocket APIs
-- `https://mqtt.greenos.app` (optional)
+- `https://mqtt.greenOS.app` (optional)
   - device messaging endpoint if MQTT is adopted
 
 ### Core runtime components
@@ -155,7 +155,7 @@ Shared hosting is acceptable only for a temporary frontend-only move. It is not 
 
 ## Recommended Refactor Direction by Subsystem
 
-## 1. WebUI refactor
+### WebUI refactor
 
 ### Current state
 
@@ -199,7 +199,7 @@ After this refactor, the WebUI can be served from Hostinger without any Hosting-
 
 ---
 
-## 2. Backend refactor
+### Backend refactor
 
 ### Current state
 
@@ -251,7 +251,7 @@ Refactor the existing Cloud Functions logic into a conventional Node.js service 
 
 ---
 
-## 3. Data model refactor
+### Data model refactor
 
 ### Current state
 
@@ -304,7 +304,7 @@ Adopt a storage model that separates:
 
 ---
 
-## 4. Firmware refactor
+### Firmware refactor
 
 ### Current state
 
@@ -354,7 +354,7 @@ If you want the least firmware churn first, start with HTTPS-only and add MQTT l
 
 ---
 
-## 5. Authentication and authorization refactor
+### Authentication and authorization refactor
 
 ### User auth
 
@@ -386,7 +386,7 @@ Move greenhouse membership checks into backend middleware and repository logic i
 
 ---
 
-## 6. Notifications and automation
+### Notifications and automation
 
 ### Current state
 
@@ -410,7 +410,7 @@ This will make alert behavior testable and independent of database side effects.
 
 ---
 
-## 7. Documentation and repository refactor
+### Documentation and repository refactor
 
 ### Files that should eventually be retired or rewritten
 
@@ -581,10 +581,10 @@ This will make alert behavior testable and independent of database side effects.
 
 ## DNS plan
 
-- `greenos.app` → VPS public IP
-- `www.greenos.app` → redirect to apex
-- `api.greenos.app` → same VPS, routed by Nginx
-- `mqtt.greenos.app` → same VPS or dedicated host if MQTT is enabled
+- `greenOS.app` → VPS public IP
+- `www.greenOS.app` → redirect to apex
+- `api.greenOS.app` → same VPS, routed by Nginx
+- `mqtt.greenOS.app` → same VPS or dedicated host if MQTT is enabled
 
 ---
 
