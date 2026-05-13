@@ -170,6 +170,7 @@ GreenOS/
 │   ├── QUICKSTART.md               # 30-minute getting started guide
 │   ├── HARDWARE_SETUP.md           # Wiring diagrams and hardware details
 │   ├── LIBRARIES.md                # Library requirements
+│   ├── HOSTINGER_MIGRATION_ADDENDUM.md # Hostinger migration proposal
 │   └── IMPLEMENTATION_SUMMARY.md   # Technical design decisions
 │
 ├── assets/                          # Project assets and media
@@ -605,6 +606,7 @@ Detailed documentation is available in the `Docs/` folder:
 | [QUICKSTART.md](Docs/QUICKSTART.md) | 30-minute getting started guide |
 | [HARDWARE_SETUP.md](Docs/HARDWARE_SETUP.md) | Complete wiring diagrams and setup |
 | [LIBRARIES.md](Docs/LIBRARIES.md) | Library requirements and installation |
+| [HOSTINGER_MIGRATION_ADDENDUM.md](Docs/HOSTINGER_MIGRATION_ADDENDUM.md) | Proposal for moving GreenOS from Firebase Hosting to Hostinger |
 | [IMPLEMENTATION_SUMMARY.md](Docs/IMPLEMENTATION_SUMMARY.md) | Technical design decisions |
 
 ---
