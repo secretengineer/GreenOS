@@ -15,8 +15,9 @@
 *.hex
 *.map
 
-# Config with credentials (use config_template.h as reference)
+# Config with credentials (use config_template.h / secrets_template.h as reference)
 include/config.h
+include/secrets.h
 
 # macOS
 .DS_Store
